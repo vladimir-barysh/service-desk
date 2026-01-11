@@ -6,7 +6,7 @@ plugins {
 
 group = 'ru.altaiensb'
 version = '0.0.1-SNAPSHOT'
-description = 'Demo project for Spring Boot'
+description = 'Projecct for service desk'
 
 java {
 	toolchain {
@@ -19,9 +19,29 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // 1. База Spring Boot (у тебя уже есть, но оставляем)
+    implementation 'org.springframework.boot:spring-boot-starter'
+
+    // 2. Самое главное — Spring Data JPA + Hibernate + jakarta.persistence
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // 3. Драйвер базы (выбери свою — PostgreSQL самый популярный)
+    runtimeOnly 'org.postgresql:postgresql'   // ← или 'com.mysql:mysql-connector-j' / 'com.h2database:h2'
+
+    // 4. Lombok (обязательно compileOnly + annotationProcessor)
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // 5. Для тестов (уже есть, но добавляем Lombok и в тесты)
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // Опционально, но очень удобно
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'  // авторестарт
 }
 
 tasks.named('test') {
