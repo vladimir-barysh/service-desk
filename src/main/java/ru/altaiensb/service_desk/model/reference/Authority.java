@@ -1,4 +1,4 @@
-package ru.altaiensb.service_desk.model;
+package ru.altaiensb.service_desk.model.reference;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -13,9 +13,9 @@ public class Authority{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_authority")
-    private Integer id;
+    private Integer idAuthority;
 
-    @Column(name = "authority", nullable = false, length = 256, unique = true)
+    @Column(name = "authority", nullable = false, length = 256)
     private String authority;
 
     @Column(name = "description")

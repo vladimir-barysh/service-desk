@@ -1,7 +1,8 @@
-package ru.altaiensb.service_desk.controller;
+package ru.altaiensb.service_desk.controller.reference;
 
-import ru.altaiensb.service_desk.model.Authority;
-import ru.altaiensb.service_desk.repository.AuthorityRepository;
+import ru.altaiensb.service_desk.model.reference.Authority;
+import ru.altaiensb.service_desk.repository.reference.AuthorityRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
