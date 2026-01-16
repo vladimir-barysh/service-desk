@@ -3,12 +3,11 @@ package ru.altaiensb.service_desk.model.core;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.ColumnDefault;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import jakarta.persistence.*;
 
 import lombok.*;
-import ru.altaiensb.service_desk.model.reference.Podr;
+import ru.altaiensb.service_desk.model.reference.*;
 
 @Entity
 @Table(name = "it_service", schema = "sd_core")
