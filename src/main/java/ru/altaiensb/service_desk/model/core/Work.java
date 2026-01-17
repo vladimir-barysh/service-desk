@@ -4,11 +4,12 @@ import jakarta.persistence.*;
 
 import lombok.*;
 
-import ru.altaiensb.service_desk.model.core.*;
-import ru.altaiensb.service_desk.model.reference.*;
+import ru.altaiensb.service_desk.model.reference.WorkType;
+import ru.altaiensb.service_desk.model.reference.Podr;
 
 @Entity
 @Table(name = "it_service_type", schema = "sd_reference")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

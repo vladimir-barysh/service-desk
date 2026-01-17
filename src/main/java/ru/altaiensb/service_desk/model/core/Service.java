@@ -11,6 +11,7 @@ import ru.altaiensb.service_desk.model.reference.*;
 
 @Entity
 @Table(name = "it_service", schema = "sd_core")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -62,7 +63,7 @@ public class Service {
     private Boolean isService;
 
     @Column(name = "business_critical", nullable = false, columnDefinition = "SMALLINT DEFAULT 3 CHECK (business_critical IN (1, 2, 3))")
-    private Short businessCritical = 3;
+    private Short businessCritical;
 
     @Column(name = "basis_s")
     private String basisS;

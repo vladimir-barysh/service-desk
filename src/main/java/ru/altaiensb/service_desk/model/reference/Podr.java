@@ -33,7 +33,7 @@ public class Podr {
 
     @ColumnDefault("false")
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted = false;
+    private Boolean isDeleted;
 
     @Column(name = "por")
     private Integer por;

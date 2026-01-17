@@ -5,10 +5,10 @@ import java.time.LocalDateTime;
 import jakarta.persistence.*;
 
 import lombok.*;
-import ru.altaiensb.service_desk.model.core.Service;
 
 @Entity
 @Table(name = "it_new", schema = "sd_core")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

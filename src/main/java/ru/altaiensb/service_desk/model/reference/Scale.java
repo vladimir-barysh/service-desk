@@ -6,6 +6,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "it_scale", schema = "sd_reference")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

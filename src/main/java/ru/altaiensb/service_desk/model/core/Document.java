@@ -4,10 +4,9 @@ import jakarta.persistence.*;
 
 import lombok.*;
 
-import ru.altaiensb.service_desk.model.core.New;
-
 @Entity
 @Table(name = "it_document", schema = "sd_core")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

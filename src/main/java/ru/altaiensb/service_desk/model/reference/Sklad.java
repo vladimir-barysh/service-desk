@@ -1,24 +1,24 @@
 package ru.altaiensb.service_desk.model.reference;
 
 import jakarta.persistence.*;
-
 import lombok.*;
 
 @Entity
-@Table(name = "it_service_type", schema = "sd_reference")
+@Table(name = "it_sklad", schema = "sd_reference")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ServiceType {
+public class Sklad {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_service_type")
-    private Integer idServiceType;
+    @Column(name = "id_sklad")
+    private Integer idSklad;
 
     @Column(name = "name")
     private String name;
 
-    @Column(name = "fullname")
-    private String fullname;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_podr", nullable = false)
+    private Podr podr;
 }

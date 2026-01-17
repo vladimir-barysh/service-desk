@@ -10,6 +10,7 @@ import ru.altaiensb.service_desk.model.reference.*;
 
 @Entity
 @Table(name = "it_catalogitem", schema = "sd_core")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
