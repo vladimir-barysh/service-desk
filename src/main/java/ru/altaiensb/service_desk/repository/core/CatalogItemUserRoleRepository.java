@@ -1,12 +1,12 @@
-package ru.altaiensb.service_desk.repository.reference;
+package ru.altaiensb.service_desk.repository.core;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import ru.altaiensb.service_desk.model.reference.Authority;
+import ru.altaiensb.service_desk.model.core.CatalogItemUserRole;
 
 @Repository
-public interface AuthorityRepository extends JpaRepository<Authority, Integer>{
+public interface CatalogItemUserRoleRepository extends JpaRepository<CatalogItemUserRole, Integer>{
     /*
     Автоматически реализуются следующие методы:
         save(entity)

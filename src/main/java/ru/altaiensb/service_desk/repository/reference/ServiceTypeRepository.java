@@ -3,10 +3,10 @@ package ru.altaiensb.service_desk.repository.reference;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import ru.altaiensb.service_desk.model.reference.Authority;
+import ru.altaiensb.service_desk.model.reference.ServiceType;
 
 @Repository
-public interface AuthorityRepository extends JpaRepository<Authority, Integer>{
+public interface ServiceTypeRepository extends JpaRepository<ServiceType, Integer>{
     /*
     Автоматически реализуются следующие методы:
         save(entity)

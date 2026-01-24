@@ -7,7 +7,13 @@ import ru.altaiensb.service_desk.model.core.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer>{
-    //Сюда писать дополнительные методы 
-    //Готовые методы:
-    //findAll(), findById(), save(), deleteById(), count() и т.д.
+    /*
+    Автоматически реализуются следующие методы:
+        save(entity)
+        findById(id)
+        findAll()
+        deleteById(id)
+        existsById(id)
+        count()
+    */
 }
