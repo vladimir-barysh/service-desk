@@ -9,10 +9,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")  // все эндпоинты
-                .allowedOrigins("http://localhost:3000")  // ← порт твоего React (CRA)
+        registry.addMapping("/**")  //все эндпоинты
+                .allowedOrigins("http://localhost:3000")  //порт React
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
-                .allowCredentials(true);  // если используешь куки/авторизацию
+                .allowCredentials(true);  //для авторизации
     }
 }
