@@ -1,7 +1,7 @@
 package ru.altaiensb.service_desk.controller.core;
 
-import ru.altaiensb.service_desk.model.core.User;
-import ru.altaiensb.service_desk.service.core.UserService;
+import ru.altaiensb.service_desk.model.core.ApproveUser;
+import ru.altaiensb.service_desk.service.core.ApproveUserService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,18 +10,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/approveuser")
 @RequiredArgsConstructor
-public class UserController {
-    private final UserService service;
+public class ApproveUserController {
+    private final ApproveUserService service;
 
     @GetMapping
-    public List<User> getAll() {
+    public List<ApproveUser> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getById(@PathVariable Integer id) {
+    public ResponseEntity<ApproveUser> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
 }

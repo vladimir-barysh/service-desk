@@ -1,7 +1,7 @@
 package ru.altaiensb.service_desk.controller.core;
 
-import ru.altaiensb.service_desk.model.core.User;
-import ru.altaiensb.service_desk.service.core.UserService;
+import ru.altaiensb.service_desk.model.core.OrderTask;
+import ru.altaiensb.service_desk.service.core.OrderTaskService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,18 +10,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/ordertask")
 @RequiredArgsConstructor
-public class UserController {
-    private final UserService service;
+public class OrderTaskController {
+    private final OrderTaskService service;
 
     @GetMapping
-    public List<User> getAll() {
+    public List<OrderTask> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getById(@PathVariable Integer id) {
+    public ResponseEntity<OrderTask> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
 }

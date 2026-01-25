@@ -1,7 +1,7 @@
 package ru.altaiensb.service_desk.controller.reference;
 
-import ru.altaiensb.service_desk.model.reference.Authority;
-import ru.altaiensb.service_desk.service.reference.AuthorityService;
+import ru.altaiensb.service_desk.model.reference.OrderSource;
+import ru.altaiensb.service_desk.service.reference.OrderSourceService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,18 +11,18 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
-@RequestMapping("/api/authority")
+@RequestMapping("/api/ordersource")
 @RequiredArgsConstructor
-public class AuthorityController {
-    private final AuthorityService service;
+public class OrderSourceController {
+    private final OrderSourceService service;
 
     @GetMapping
-    public List<Authority> getAll() {
+    public List<OrderSource> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Authority> getById(@PathVariable Integer id) {
+    public ResponseEntity<OrderSource> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
 }
