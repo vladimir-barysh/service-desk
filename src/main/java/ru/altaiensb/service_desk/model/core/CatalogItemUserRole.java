@@ -35,5 +35,5 @@ public class CatalogItemUserRole {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_service")
-    private Service service;
+    private Serv service;
 }

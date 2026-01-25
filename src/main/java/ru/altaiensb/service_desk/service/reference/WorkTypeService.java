@@ -1,0 +1,25 @@
+package ru.altaiensb.service_desk.service.reference;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import ru.altaiensb.service_desk.repository.reference.WorkTypeRepository;
+import ru.altaiensb.service_desk.model.reference.WorkType;
+
+@Service
+@RequiredArgsConstructor
+public class WorkTypeService {
+
+    private final WorkTypeRepository repo;
+
+    public List<WorkType> getAll() {
+        return repo.findAll();
+    }
+
+    public WorkType getById(Integer id) {
+        return repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("WorkType not found with id=" + id));
+    }
+}

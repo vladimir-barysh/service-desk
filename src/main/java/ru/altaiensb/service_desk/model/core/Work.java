@@ -29,7 +29,7 @@ public class Work {
 
     @ManyToOne
     @JoinColumn(name = "id_service")
-    private Service service;
+    private Serv service;
 
     @ManyToOne
     @JoinColumn(name = "id_group")

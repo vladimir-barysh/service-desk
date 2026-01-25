@@ -1,0 +1,25 @@
+package ru.altaiensb.service_desk.service.reference;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import ru.altaiensb.service_desk.repository.reference.ScaleRepository;
+import ru.altaiensb.service_desk.model.reference.Scale;
+
+@Service
+@RequiredArgsConstructor
+public class ScaleService {
+
+    private final ScaleRepository repo;
+
+    public List<Scale> getAll() {
+        return repo.findAll();
+    }
+
+    public Scale getById(Integer id) {
+        return repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Scale not found with id=" + id));
+    }
+}

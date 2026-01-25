@@ -15,7 +15,7 @@ import ru.altaiensb.service_desk.model.reference.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Service {
+public class Serv {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_service")
@@ -52,7 +52,7 @@ public class Service {
 
     @ManyToOne
     @JoinColumn(name = "id_service_parent", nullable = false)
-    private Service serviceParent;
+    private Serv serviceParent;
 
     @ColumnDefault("false")
     @Column(name = "is_need_approval", nullable = false)

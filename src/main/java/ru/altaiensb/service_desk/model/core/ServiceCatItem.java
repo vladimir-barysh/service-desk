@@ -17,7 +17,7 @@ public class ServiceCatItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_service", nullable = false)
-    private Service service;
+    private Serv service;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_catitem", nullable = false)

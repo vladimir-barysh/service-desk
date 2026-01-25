@@ -1,7 +1,7 @@
 package ru.altaiensb.service_desk.controller.core;
 
 import ru.altaiensb.service_desk.model.core.User;
-import ru.altaiensb.service_desk.repository.core.UserRepository;
+import ru.altaiensb.service_desk.service.core.UserService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,15 +14,15 @@ import java.util.List;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
-    private final UserRepository userRepository;
+    private final UserService service;
 
     @GetMapping
     public List<User> getAll() {
-        return userRepository.findAll();
+        return service.getAll();
     }
     
     @GetMapping("/{id}")
     public ResponseEntity<User> getById(@PathVariable Integer id) {
-        return userRepository.findById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(service.getById(id));
     }
 }

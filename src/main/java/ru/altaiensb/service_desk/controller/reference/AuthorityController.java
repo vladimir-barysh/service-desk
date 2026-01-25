@@ -1,7 +1,7 @@
 package ru.altaiensb.service_desk.controller.reference;
 
 import ru.altaiensb.service_desk.model.reference.Authority;
-import ru.altaiensb.service_desk.repository.reference.AuthorityRepository;
+import ru.altaiensb.service_desk.service.reference.AuthorityService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,21 +11,19 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 //import org.springframework.web.bind.annotation.RequestParam;
 
-
 @RestController
 @RequestMapping("/api/authorities")
 @RequiredArgsConstructor
 public class AuthorityController {
-    private final AuthorityRepository authorityRepository;
+    private final AuthorityService service;
 
     @GetMapping
     public List<Authority> getAll() {
-        return authorityRepository.findAll();
+        return service.getAll();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Authority> getById(@PathVariable Integer id) {
-        return authorityRepository.findById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(service.getById(id));
     }
-    
 }

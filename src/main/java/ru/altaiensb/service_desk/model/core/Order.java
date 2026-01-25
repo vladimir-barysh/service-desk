@@ -53,7 +53,7 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_service")
-    private Service service;
+    private Serv service;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_order_state", nullable = false)

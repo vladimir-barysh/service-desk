@@ -25,7 +25,7 @@ public class Function {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_service")
-    private Service service;
+    private Serv service;
 
     //добавить проверку >=1 <=9
     @Column(name = "acc_level")

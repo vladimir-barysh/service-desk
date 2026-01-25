@@ -29,5 +29,5 @@ public class New {
 
     @ManyToOne
     @JoinColumn(name = "id_service")
-    private Service serviceEntity;
+    private Serv serviceEntity;
 }
