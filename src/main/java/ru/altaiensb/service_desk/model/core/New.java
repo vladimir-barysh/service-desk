@@ -1,6 +1,6 @@
 package ru.altaiensb.service_desk.model.core;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import jakarta.persistence.*;
 
@@ -22,7 +22,7 @@ public class New {
     private String name;
 
     @Column(name = "date_s")
-    private LocalDateTime dateS;
+    private LocalDate dateS;
 
     @Column(name = "description")
     private String description;

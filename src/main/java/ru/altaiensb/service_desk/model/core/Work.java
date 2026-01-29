@@ -8,7 +8,7 @@ import ru.altaiensb.service_desk.model.reference.WorkType;
 import ru.altaiensb.service_desk.model.reference.Podr;
 
 @Entity
-@Table(name = "it_service_type", schema = "sd_reference")
+@Table(name = "it_work", schema = "sd_core")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

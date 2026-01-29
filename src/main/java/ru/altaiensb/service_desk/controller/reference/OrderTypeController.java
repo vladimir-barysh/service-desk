@@ -11,7 +11,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
-@RequestMapping("/api/ordertype")
+@RequestMapping("/api/ordertype")   
 @RequiredArgsConstructor
 public class OrderTypeController {
     private final OrderTypeService service;

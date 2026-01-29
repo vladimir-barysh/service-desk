@@ -1,6 +1,6 @@
 package ru.altaiensb.service_desk.model.core;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import jakarta.persistence.*;
 
@@ -36,7 +36,7 @@ public class CatalogItem {
     private String expBasis;
 
     @Column(name = "exp_date")
-    private LocalDateTime expDate;
+    private LocalDate expDate;
 
     @Column(name = "nomer", length = 7)
     private String nomer;

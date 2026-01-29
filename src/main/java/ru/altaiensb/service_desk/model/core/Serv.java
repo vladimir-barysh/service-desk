@@ -1,6 +1,6 @@
 package ru.altaiensb.service_desk.model.core;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import org.hibernate.annotations.ColumnDefault;
 
@@ -34,10 +34,10 @@ public class Serv {
     private String developer;
 
     @Column(name = "date_s")
-    private LocalDateTime dateS;
+    private LocalDate dateS;
 
     @Column(name = "date_f")
-    private LocalDateTime dateF;
+    private LocalDate dateF;
 
     @Column(name = "priznak_is")
     private Boolean priznakIs;

@@ -21,9 +21,6 @@ public class Podr {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "id_podr_parent")
-    private Integer idPodrParent;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_podr_parent")
     private Podr podrParent;  

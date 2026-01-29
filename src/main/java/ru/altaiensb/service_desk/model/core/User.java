@@ -1,6 +1,11 @@
 package ru.altaiensb.service_desk.model.core;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Collections;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.*;
 
@@ -13,7 +18,7 @@ import ru.altaiensb.service_desk.model.reference.Podr;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class User implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_it_user")
@@ -28,31 +33,33 @@ public class User {
     @Column(name = "tel_ad", length = 50)
     private String telAd;
 
-    //ссылка на таблицу подразделений
+    @Column(name = "fio_1c")
+    private String fio1c;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_podr")
     private Podr podr;
 
-    @Column(name = "dolzhn_1c")
-    private String dolzhn1c;
+    @Column(name = "dolzh_1c")
+    private String dolzh1c;
 
     @Column(name = "tab_num_1c", length = 50)
     private String tabNum1c;
 
     @Column(name = "d_c")
-    private LocalDateTime dateCreate;
+    private LocalDate dateCreate;
 
     @Column(name = "d_m")
-    private LocalDateTime dateModern;
+    private LocalDate dateModern;
 
     @Column(name = "is_user")
     private Boolean isUser;
 
     @Column(name = "d_prin")
-    private LocalDateTime datePrin;
+    private LocalDate datePrin;
 
     @Column(name = "d_uvol")
-    private LocalDateTime dateUvol;
+    private LocalDate dateUvol;
 
     @Column(name = "agreement_type", length = 50)
     private String agreementType;
@@ -80,4 +87,30 @@ public class User {
 
     @Column(name = "grade")
     private Integer grade;
+
+    public String getUsername() { return loginAd; }
+    public String getPassword() { return ctiPassword; }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.emptyList();
+    } 
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }
