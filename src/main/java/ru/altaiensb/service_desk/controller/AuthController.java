@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import ru.altaiensb.service_desk.repository.core.UserRepository;
-import ru.altaiensb.service_desk.model.core.User;
+import ru.altaiensb.service_desk.repository.UserRepository;
+import ru.altaiensb.service_desk.model.User;
 
 @Controller
 public class AuthController {

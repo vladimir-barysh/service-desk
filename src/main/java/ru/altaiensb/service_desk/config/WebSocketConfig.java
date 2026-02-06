@@ -1,4 +1,4 @@
-package ru.altaiensb.service_desk.config;
+/*package ru.altaiensb.service_desk.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -24,7 +24,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS();
     }
 
-    /*/ Важно: разрешаем аутентифицированным пользователям подключаться
+    // Важно: разрешаем аутентифицированным пользователям подключаться
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(new ChannelInterceptor() {
@@ -40,5 +40,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 return message;
             }
         });
-    }*/
-}
+    }
+}*/
