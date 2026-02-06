@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "it_effect", schema = "sd_reference")
+@Table(name = "it_effect", schema = "sd_core")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
