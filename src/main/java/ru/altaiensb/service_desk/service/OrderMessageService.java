@@ -1,0 +1,25 @@
+package ru.altaiensb.service_desk.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import ru.altaiensb.service_desk.model.OrderMessage;
+import ru.altaiensb.service_desk.repository.OrderMessageRepository;
+
+@Service
+@RequiredArgsConstructor
+public class OrderMessageService {
+
+    private final OrderMessageRepository repo;
+
+    public List<OrderMessage> getAll() {
+        return repo.findAll();
+    }
+
+    public OrderMessage getById(Integer id) {
+        return repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("OrderMessage not found with id=" + id));
+    }
+}
