@@ -3,7 +3,7 @@ package ru.altaiensb.service_desk.repository.core;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import ru.altaiensb.service_desk.model.core.Serv;
+import ru.altaiensb.service_desk.model.Serv;
 
 @Repository
 public interface ServiceRepository extends JpaRepository<Serv, Integer>{

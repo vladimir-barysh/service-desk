@@ -3,7 +3,7 @@ package ru.altaiensb.service_desk.repository.reference;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import ru.altaiensb.service_desk.model.reference.ExpType;
+import ru.altaiensb.service_desk.model.ExpType;
 
 @Repository
 public interface ExpTypeRepository extends JpaRepository<ExpType, Integer>{

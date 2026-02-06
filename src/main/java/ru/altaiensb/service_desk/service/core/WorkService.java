@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.Work;
 import ru.altaiensb.service_desk.repository.core.WorkRepository;
-import ru.altaiensb.service_desk.model.core.Work;
 
 @Service
 @RequiredArgsConstructor

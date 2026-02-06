@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.Effect;
 import ru.altaiensb.service_desk.repository.reference.EffectRepository;
-import ru.altaiensb.service_desk.model.reference.Effect;
 
 @Service
 @RequiredArgsConstructor

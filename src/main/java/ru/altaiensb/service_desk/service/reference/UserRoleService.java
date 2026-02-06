@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.UserRole;
 import ru.altaiensb.service_desk.repository.reference.UserRoleRepository;
-import ru.altaiensb.service_desk.model.reference.UserRole;
 
 @Service
 @RequiredArgsConstructor

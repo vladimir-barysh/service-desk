@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.Podr;
 import ru.altaiensb.service_desk.repository.reference.PodrRepository;
-import ru.altaiensb.service_desk.model.reference.Podr;
 
 @Service
 @RequiredArgsConstructor

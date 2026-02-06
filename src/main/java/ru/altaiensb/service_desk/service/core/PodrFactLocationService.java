@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.PodrFactLocation;
 import ru.altaiensb.service_desk.repository.core.PodrFactLocationRepository;
-import ru.altaiensb.service_desk.model.core.PodrFactLocation;
 
 @Service
 @RequiredArgsConstructor

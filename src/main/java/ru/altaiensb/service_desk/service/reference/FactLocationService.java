@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.FactLocation;
 import ru.altaiensb.service_desk.repository.reference.FactLocationRepository;
-import ru.altaiensb.service_desk.model.reference.FactLocation;
 
 @Service
 @RequiredArgsConstructor

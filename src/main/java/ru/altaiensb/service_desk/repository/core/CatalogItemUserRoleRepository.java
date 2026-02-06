@@ -3,7 +3,7 @@ package ru.altaiensb.service_desk.repository.core;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import ru.altaiensb.service_desk.model.core.CatalogItemUserRole;
+import ru.altaiensb.service_desk.model.CatalogItemUserRole;
 
 @Repository
 public interface CatalogItemUserRoleRepository extends JpaRepository<CatalogItemUserRole, Integer>{

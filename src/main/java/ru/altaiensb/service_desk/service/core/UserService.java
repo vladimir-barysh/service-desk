@@ -9,8 +9,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.User;
 import ru.altaiensb.service_desk.repository.core.UserRepository;
-import ru.altaiensb.service_desk.model.core.User;
 
 @Service
 @RequiredArgsConstructor

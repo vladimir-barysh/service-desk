@@ -3,7 +3,7 @@ package ru.altaiensb.service_desk.repository.core;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import ru.altaiensb.service_desk.model.core.CatalogArhData;
+import ru.altaiensb.service_desk.model.CatalogArhData;
 
 @Repository
 public interface CatalogArhDataRepository extends JpaRepository<CatalogArhData, Integer>{

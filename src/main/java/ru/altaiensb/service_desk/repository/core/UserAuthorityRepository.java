@@ -3,7 +3,7 @@ package ru.altaiensb.service_desk.repository.core;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import ru.altaiensb.service_desk.model.core.UserAuthority;
+import ru.altaiensb.service_desk.model.UserAuthority;
 
 @Repository
 public interface UserAuthorityRepository extends JpaRepository<UserAuthority, Integer>{

@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.OrderTask;
 import ru.altaiensb.service_desk.repository.core.OrderTaskRepository;
-import ru.altaiensb.service_desk.model.core.OrderTask;
 
 @Service
 @RequiredArgsConstructor

@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.Approve;
 import ru.altaiensb.service_desk.repository.core.ApproveRepository;
-import ru.altaiensb.service_desk.model.core.Approve;
 
 @Service
 @RequiredArgsConstructor

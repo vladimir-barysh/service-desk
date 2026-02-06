@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.CatalogItem;
 import ru.altaiensb.service_desk.repository.core.CatalogItemRepository;
-import ru.altaiensb.service_desk.model.core.CatalogItem;
 
 @Service
 @RequiredArgsConstructor

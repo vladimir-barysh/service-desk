@@ -3,7 +3,7 @@ package ru.altaiensb.service_desk.repository.reference;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import ru.altaiensb.service_desk.model.reference.Function;
+import ru.altaiensb.service_desk.model.Function;
 
 @Repository
 public interface FunctionRepository extends JpaRepository<Function, Integer>{

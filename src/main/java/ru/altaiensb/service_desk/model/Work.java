@@ -1,0 +1,45 @@
+package ru.altaiensb.service_desk.model;
+
+import jakarta.persistence.*;
+
+import lombok.*;
+
+@Entity
+@Table(name = "it_work", schema = "sd_core")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Work {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_work")
+    private Integer idWork;
+
+    @ManyToOne
+    @JoinColumn(name = "id_work_parent")
+    private Work workParent;
+
+    @ManyToOne
+    @JoinColumn(name = "id_catitem")
+    private CatalogItem catitem;
+
+    @ManyToOne
+    @JoinColumn(name = "id_service")
+    private Serv service;
+
+    @ManyToOne
+    @JoinColumn(name = "id_group")
+    private Group group;
+
+    @ManyToOne
+    @JoinColumn(name = "id_work_type", nullable = false)
+    private WorkType workType;
+
+    @Column(name = "remark")
+    private String remark;
+
+    @ManyToOne
+    @JoinColumn(name = "id_podr", nullable = false)
+    private Podr podr;
+}

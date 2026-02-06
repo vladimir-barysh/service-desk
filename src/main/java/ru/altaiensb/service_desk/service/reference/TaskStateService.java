@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.TaskState;
 import ru.altaiensb.service_desk.repository.reference.TaskStateRepository;
-import ru.altaiensb.service_desk.model.reference.TaskState;
 
 @Service
 @RequiredArgsConstructor

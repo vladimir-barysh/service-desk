@@ -3,7 +3,7 @@ package ru.altaiensb.service_desk.repository.core;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import ru.altaiensb.service_desk.model.core.CatalogItem;
+import ru.altaiensb.service_desk.model.CatalogItem;
 
 @Repository
 public interface CatalogItemRepository extends JpaRepository<CatalogItem, Integer>{

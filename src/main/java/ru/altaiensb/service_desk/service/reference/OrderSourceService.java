@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import ru.altaiensb.service_desk.model.OrderSource;
 import ru.altaiensb.service_desk.repository.reference.OrderSourceRepository;
-import ru.altaiensb.service_desk.model.reference.OrderSource;
 
 @Service
 @RequiredArgsConstructor
