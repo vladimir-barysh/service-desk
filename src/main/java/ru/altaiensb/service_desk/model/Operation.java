@@ -15,7 +15,7 @@ public class Operation {
     @Column(name = "id_operation")
     private Integer idOperation;
 
-    @Column(name = "name", length = 256, nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "description")

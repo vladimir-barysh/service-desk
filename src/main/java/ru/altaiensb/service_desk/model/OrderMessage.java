@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "it_order_message", schema = "sd_core")
@@ -19,8 +19,8 @@ public class OrderMessage {
     private Integer idOrderMessage;
 
     @CreationTimestamp
-    @Column(name = "d_c", updatable = false)
-    private LocalDateTime dateCreated;
+    @Column(name = "d_c", columnDefinition = "timestamptz")
+    private Instant dateCreated;
 
     @Column(name = "text")
     private String text;

@@ -1,6 +1,6 @@
 package ru.altaiensb.service_desk.model;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 import jakarta.persistence.*;
 
@@ -21,8 +21,8 @@ public class New {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "date_s")
-    private LocalDate dateS;
+    @Column(name = "date_s", columnDefinition = "timestamptz")
+    private Instant dateS;
 
     @Column(name = "description")
     private String description;

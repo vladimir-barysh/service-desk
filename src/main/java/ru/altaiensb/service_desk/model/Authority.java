@@ -15,7 +15,7 @@ public class Authority{
     @Column(name = "id_authority")
     private Integer idAuthority;
 
-    @Column(name = "authority", nullable = false, length = 256)
+    @Column(name = "authority", nullable = false)
     private String authority;
 
     @Column(name = "description")

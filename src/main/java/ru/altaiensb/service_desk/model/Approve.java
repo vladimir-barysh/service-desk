@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Entity
 @Table(name = "it_approve", schema = "sd_core")
@@ -35,18 +35,18 @@ public class Approve {
     private Boolean flagApproved;
 
     @CreationTimestamp
-    @Column(name = "date_c", updatable = false)
-    private LocalDate dateCreated;
+    @Column(name = "date_c", columnDefinition = "timestamptz")
+    private Instant dateCreated;
 
-    @Column(name = "date_plan")
-    private LocalDate datePlan;
+    @Column(name = "date_plan", columnDefinition = "timestamptz")
+    private Instant datePlan;
 
     @ColumnDefault("0")
     @Column(name = "state", nullable = false)
     private Short state;
 
-    @Column(name = "date_fact")
-    private LocalDate dateFact;
+    @Column(name = "date_fact", columnDefinition = "timestamptz")
+    private Instant dateFact;
 
     @Column(name = "task_text")
     private String taskText;

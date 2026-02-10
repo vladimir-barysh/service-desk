@@ -2,7 +2,7 @@ package ru.altaiensb.service_desk.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Entity
 @Table(name = "it_catalog_arh_data", schema = "sd_core")
@@ -26,35 +26,35 @@ public class CatalogArhData {
     @Column(name = "nomer", length = 7)
     private String nomer;
 
-    @Column(name = "name", length = 256)
+    @Column(name = "name")
     private String name;
 
     @Column(name = "description")
     private String description;
 
-    @Column(name = "org", length = 256)
+    @Column(name = "org")
     private String org;
 
-    @Column(name = "podr", length = 256)
+    @Column(name = "podr")
     private String podr;
 
-    @Column(name = "fio_fz", length = 256)
+    @Column(name = "fio_fz")
     private String fioFz;
 
-    @Column(name = "fio_cu", length = 256)
+    @Column(name = "fio_cu")
     private String fioCu;
 
-    @Column(name = "fio_sm", length = 256)
+    @Column(name = "fio_sm")
     private String fioSm;
 
     @Column(name = "state", length = 50)
     private String state;
 
-    @Column(name = "exp_basis", length = 256)
+    @Column(name = "exp_basis")
     private String expBasis;
 
-    @Column(name = "exp_date")
-    private LocalDate expDate;
+    @Column(name = "exp_date", columnDefinition = "timestamptz")
+    private Instant expDate;
 
     @Column(name = "scale", length = 50)
     private String scale;

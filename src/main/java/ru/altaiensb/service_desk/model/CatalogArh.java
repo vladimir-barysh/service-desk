@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Entity
 @Table(name = "it_catalog_arh", schema = "sd_core")
@@ -19,8 +19,8 @@ public class CatalogArh {
     private Integer idArh;
 
     @CreationTimestamp
-    @Column(name = "d_c", nullable = false, updatable = false)
-    private LocalDate dateCreated;
+    @Column(name = "d_c", nullable = false, updatable = false, columnDefinition = "timestamptz")
+    private Instant dateCreated;
 
     @Column(name = "u_c", nullable = false)
     private Integer userCreatorId;

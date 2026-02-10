@@ -15,7 +15,7 @@ public class Menu {
     @Column(name = "id_menu")
     private Integer idMenu;
 
-    @Column(name = "name", length = 256)
+    @Column(name = "name")
     private String name;
 
     @Column(name = "description")

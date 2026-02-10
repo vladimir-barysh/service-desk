@@ -23,13 +23,13 @@ public class User implements UserDetails{
     @Column(name = "id_it_user")
     private Integer idItUser;
 
-    @Column(name = "login_ad", length = 50)
+    @Column(name = "login_ad")
     private String loginAd;
 
     @Column(name = "email_ad")
     private String emailAd;
 
-    @Column(name = "tel_ad", length = 50)
+    @Column(name = "tel_ad")
     private String telAd;
 
     @Column(name = "fio_1c")
@@ -42,7 +42,7 @@ public class User implements UserDetails{
     @Column(name = "dolzh_1c")
     private String dolzh1c;
 
-    @Column(name = "tab_num_1c", length = 50)
+    @Column(name = "tab_num_1c")
     private String tabNum1c;
 
     @Column(name = "d_c")
@@ -60,25 +60,25 @@ public class User implements UserDetails{
     @Column(name = "d_uvol")
     private LocalDate dateUvol;
 
-    @Column(name = "agreement_type", length = 50)
+    @Column(name = "agreement_type")
     private String agreementType;
 
-    @Column(name = "fiz_lico", length = 50)
+    @Column(name = "fiz_lico")
     private String fizLico;
 
     @Column(name = "state_1c")
     private String state1c;
 
-    @Column(name = "cti_user", length = 50)
+    @Column(name = "cti_user")
     private String ctiUser;
 
-    @Column(name = "cti_password", length = 50)
+    @Column(name = "cti_password")
     private String ctiPassword;
 
-    @Column(name = "crm_user", length = 50)
+    @Column(name = "crm_user")
     private String crmUser;
 
-    @Column(name = "crm_password", length = 50)
+    @Column(name = "crm_password")
     private String crmPassword;
 
     @Column(name = "inter_ad")

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "it_order_task", schema = "sd_core")
@@ -34,11 +34,11 @@ public class OrderTask {
     @JoinColumn(name = "id_user_executor")
     private User executor;
 
-    @Column(name = "date_f_plan")
-    private LocalDateTime dateFinishPlan;
+    @Column(name = "date_f_plan", columnDefinition = "timestamptz")
+    private Instant dateFinishPlan;
 
-    @Column(name = "date_f_fact")
-    private LocalDateTime dateFinishFact;
+    @Column(name = "date_f_fact", columnDefinition = "timestamptz")
+    private Instant dateFinishFact;
 
     @Column(name = "description")
     private String description;
@@ -51,8 +51,8 @@ public class OrderTask {
     private TaskState taskState;
 
     @CreationTimestamp
-    @Column(name = "date_c", updatable = false)
-    private LocalDateTime dateCreated;
+    @Column(name = "date_c", columnDefinition = "timestamptz")
+    private Instant dateCreated;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_user_creator", nullable = false)

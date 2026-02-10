@@ -16,7 +16,7 @@ public class Document {
     @Column(name = "id_document")
     private Integer idDocument;
 
-    @Column(name = "name", length = 100)
+    @Column(name = "name")
     private String name;
 
     @Column(name = "type", length = 10)

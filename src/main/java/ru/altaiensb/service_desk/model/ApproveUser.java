@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 @Entity
 @Table(name = "it_approve_users", schema = "sd_core")
@@ -40,11 +40,11 @@ public class ApproveUser {
     @JoinColumn(name = "id_approve_users_parent")
     private ApproveUser approveUserParent;
 
-    @Column(name = "date_plan")
-    private LocalDate datePlan;
+    @Column(name = "date_plan", columnDefinition = "timestamptz")
+    private Instant datePlan;
 
-    @Column(name = "date_fact")
-    private LocalDate dateFact;
+    @Column(name = "date_fact", columnDefinition = "timestamptz")
+    private Instant dateFact;
 
     @Column(name = "task_text")
     private String taskText;

@@ -15,6 +15,6 @@ public class TaskState {
     @Column(name = "id_task_state")
     private Integer idTaskState;
 
-    @Column(name = "name", length = 256)
+    @Column(name = "name")
     private String name;
 }

@@ -1,6 +1,6 @@
 package ru.altaiensb.service_desk.model;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
 import org.hibernate.annotations.ColumnDefault;
 
@@ -32,11 +32,11 @@ public class Serv {
     @Column(name = "developer")
     private String developer;
 
-    @Column(name = "date_s")
-    private LocalDate dateS;
+    @Column(name = "date_s", columnDefinition = "timestamptz")
+    private Instant dateS;
 
-    @Column(name = "date_f")
-    private LocalDate dateF;
+    @Column(name = "date_f", columnDefinition = "timestamptz")
+    private Instant dateF;
 
     @Column(name = "priznak_is")
     private Boolean priznakIs;
