@@ -41,16 +41,16 @@ public class Serv {
     @Column(name = "priznak_is")
     private Boolean priznakIs;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_service_type", nullable = false)
     private ServiceType serviceType;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_exp_type", nullable = false)
     private ExpType expType;
 
-    @ManyToOne
-    @JoinColumn(name = "id_service_parent", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_service_parent")
     private Serv serviceParent;
 
     @ColumnDefault("false")

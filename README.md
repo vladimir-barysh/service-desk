@@ -22,3 +22,4 @@ These additional references should also help you:
     В левой панели нажать на Gradle
     Справа от "Gradle Projects" нажать на Reload all Gradle Projects
     Перезапустить VS Code
+Если ругается на parent-сущности, у связей добавить (fetch = FetchType.LAZY)

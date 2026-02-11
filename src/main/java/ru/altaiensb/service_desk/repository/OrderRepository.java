@@ -1,6 +1,7 @@
 package ru.altaiensb.service_desk.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import ru.altaiensb.service_desk.model.Order;
@@ -16,4 +17,6 @@ public interface OrderRepository extends JpaRepository<Order, Integer>{
         existsById(id)
         count()
     */
+    @Query("SELECT MAX(o.nomer) FROM Order o")
+    Integer findMaxNomer();
 }

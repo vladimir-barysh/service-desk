@@ -39,6 +39,7 @@ public class SecurityConfig {
                  * .csrf(csrf -> csrf.disable());
                  */
                 // ← Включаем CORS (обязательно здесь!)
+                .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 // ← Основная часть: правила доступа
@@ -53,7 +54,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
 
                 // Отключаем CSRF для REST API (обычно безопасно, если нет форм)
-                .csrf(csrf -> csrf.disable());
+                ;
         return http.build();
     }
 
