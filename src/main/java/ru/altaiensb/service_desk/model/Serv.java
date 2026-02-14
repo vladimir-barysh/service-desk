@@ -46,6 +46,10 @@ public class Serv {
     private ServiceType serviceType;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_service_state")
+    private ServiceState serviceState;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_exp_type", nullable = false)
     private ExpType expType;
 
