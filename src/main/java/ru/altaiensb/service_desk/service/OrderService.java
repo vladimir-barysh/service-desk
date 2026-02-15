@@ -39,8 +39,11 @@ public class OrderService {
 
         order.setName(dto.getName());
         order.setDescription(dto.getDescription());
-        order.setDateCreated(Instant.now()); // дата создания устанавливается автоматически
+        order.setDateCreated(Instant.now());                    // дата создания устанавливается автоматически
         order.setDateFinishPlan(dto.getDateFinishPlan());
+        order.setDatePostpone(dto.getDatePostpone());
+        order.setComment(dto.getComment());
+
         // временный юзер
         order.setCreator(
                 userRepository.findById(1)

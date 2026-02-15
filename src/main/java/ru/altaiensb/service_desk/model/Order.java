@@ -37,6 +37,12 @@ public class Order {
     @Column(name = "date_f_fact", columnDefinition = "timestamptz")
     private Instant dateFinishFact;
 
+    @Column(name = "date_postpone", columnDefinition = "timestamptz")
+    private Instant datePostpone;
+
+    @Column(name = "comment")
+    private String comment;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_order_parent")
     private Order orderParent;
