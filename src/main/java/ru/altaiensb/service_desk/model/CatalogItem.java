@@ -55,4 +55,14 @@ public class CatalogItem {
     @ManyToOne
     @JoinColumn(name = "id_scale")
     private Scale scale;
+
+    @Column(name = "exp_out_basis")
+    private String expOutBasis;
+
+    @Column(name = "exp_out_date")
+    private LocalDate expOutDate;
+
+    @ManyToOne
+    @JoinColumn(name = "id_catitem_state")
+    private Effect catitemState;
 }

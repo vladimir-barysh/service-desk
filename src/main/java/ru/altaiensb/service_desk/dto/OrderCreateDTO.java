@@ -23,4 +23,6 @@ public class OrderCreateDTO {
     private Integer idExecutor;
     private Integer idOrderSource;
     private String resultText;
+    private Instant datePostpone;
+    private String comment;
 }
