@@ -5,7 +5,7 @@ import java.time.Instant;
 import lombok.Data;
 
 @Data
-public class OrderCreateDTO {
+public class OrderDTO {
     private Integer nomer;
     private String name;
     private String description;
@@ -17,6 +17,7 @@ public class OrderCreateDTO {
     private Integer idCatItem;
     private Integer idService;
     private Integer idOrderPriority;
+    private Integer idOrderState;
     private Integer idCreator;
     private Integer idInitiator;
     private Integer idDispatcher;
