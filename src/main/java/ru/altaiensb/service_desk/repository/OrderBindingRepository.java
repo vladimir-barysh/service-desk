@@ -1,5 +1,7 @@
 package ru.altaiensb.service_desk.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,4 +18,5 @@ public interface OrderBindingRepository extends JpaRepository<OrderBinding, Inte
         existsById(id)
         count()
     */
+    List<OrderBinding> findByOrder_IdOrder(Integer orderId);
 }
