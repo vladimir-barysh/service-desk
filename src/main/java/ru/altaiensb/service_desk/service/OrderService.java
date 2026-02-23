@@ -18,6 +18,7 @@ import ru.altaiensb.service_desk.model.Order;
 import ru.altaiensb.service_desk.model.OrderBinding;
 import ru.altaiensb.service_desk.model.User;
 import ru.altaiensb.service_desk.repository.*;
+import ru.altaiensb.service_desk.model.OrderState;
 
 @Service
 @RequiredArgsConstructor
@@ -161,6 +162,17 @@ public class OrderService {
         Order order = orderRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id=" + id));
         orderRepo.delete(order);
+    }
+
+    public Order updateStatus(Integer id, Integer newStateId) {
+        Order order = orderRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with id=" + id));
+
+        OrderState newState = orderStateRepo.findById(newStateId)
+                .orElseThrow(() -> new RuntimeException("OrderState not found with id=" + newStateId));
+
+        order.setOrderState(newState);
+        return orderRepo.save(order);
     }
 
 }
