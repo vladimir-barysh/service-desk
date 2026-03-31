@@ -31,6 +31,10 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
+
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
     // 3. Драйвер базы (выбери свою — PostgreSQL самый популярный)
     runtimeOnly 'org.postgresql:postgresql'   // ← или 'com.mysql:mysql-connector-j' / 'com.h2database:h2'
 

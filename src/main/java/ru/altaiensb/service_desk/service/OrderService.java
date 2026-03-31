@@ -13,12 +13,20 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.openapitools.jackson.nullable.JsonNullable;
+
 import ru.altaiensb.service_desk.dto.OrderDTO;
+import ru.altaiensb.service_desk.dto.OrderUpdateDTO;
 import ru.altaiensb.service_desk.model.Order;
 import ru.altaiensb.service_desk.model.OrderBinding;
+import ru.altaiensb.service_desk.model.OrderPriority;
 import ru.altaiensb.service_desk.model.User;
 import ru.altaiensb.service_desk.repository.*;
 import ru.altaiensb.service_desk.model.OrderState;
+import ru.altaiensb.service_desk.model.OrderType;
+import ru.altaiensb.service_desk.model.Serv;
 
 @Service
 @RequiredArgsConstructor
@@ -122,30 +130,70 @@ public class OrderService {
         return order;
     }
 
-    public Order update(Integer id, OrderDTO dto) {
+    public Order update(Integer id, OrderUpdateDTO dto) {
         Order order = orderRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id=" + id));
 
-        order.setName(dto.getName());
-        order.setDescription(dto.getDescription());
-        order.setDateFinishPlan(dto.getDateFinishPlan());
-        order.setDatePostpone(dto.getDatePostpone());
-        order.setService(servRepo.findById(dto.getIdService())
-                .orElseThrow(() -> new RuntimeException(
-                        "Service not found with id=" + dto.getIdService())));
-        order.setOrderType(orderTypeRepo.findById(dto.getIdOrderType())
-                .orElseThrow(() -> new RuntimeException(
-                        "OrderType not found with id=" + dto.getIdOrderType())));
-        order.setOrderState(orderStateRepo.findById(dto.getIdOrderState())
-                .orElseThrow(() -> new RuntimeException(
-                        "OrderState not found with id=" + dto.getIdOrderState())));
-        order.setOrderPriority(orderPriorityRepo.findById(dto.getIdOrderPriority())
-                .orElseThrow(
-                        () -> new RuntimeException("OrderPriority not found with id="
-                                + dto.getIdOrderPriority())));
-        order.setComment(dto.getComment());
-        order.setComment(dto.getComment());
+        dto.getName().ifPresent(order::setName);
+        dto.getDescription().ifPresent(order::setDescription);
+        dto.getDateFinishPlan().ifPresent(order::setDateFinishPlan);
+        dto.getDateFinishFact().ifPresent(order::setDateFinishFact);
+        dto.getDatePostpone().ifPresent(order::setDatePostpone);
+        
+        dto.getIdOrderParent().ifPresent(idOrderParent -> {
+            if (idOrderParent == null) {
+                order.setOrderParent(null);
+            } else {
+                Order parent = orderRepo.findById(idOrderParent)
+                        .orElseThrow(() -> new RuntimeException("OrderParent not found"));
+                order.setOrderParent(parent);
+            }
+        });
 
+        dto.getIdOrderType().ifPresent(idType -> {
+            if (idType == null) {
+                order.setOrderType(null);
+            } else {
+                OrderType type = orderTypeRepo.findById(idType)
+                        .orElseThrow(() -> new RuntimeException("OrderType not found"));
+                order.setOrderType(type);
+            }
+        });
+
+        dto.getIdService().ifPresent(idService -> {
+            if (idService == null) {
+                order.setService(null);
+            } else {
+                Serv service = servRepo.findById(idService)
+                        .orElseThrow(() -> new RuntimeException("Service not found"));
+                order.setService(service);
+            }
+        });
+
+        dto.getIdOrderPriority().ifPresent(idPriority -> {
+            if (idPriority == null) {
+                order.setOrderPriority(null);
+            } else {
+                OrderPriority priority = orderPriorityRepo.findById(idPriority)
+                        .orElseThrow(() -> new RuntimeException("OrderPriority not found"));
+                order.setOrderPriority(priority);
+            }
+        });
+
+        dto.getIdOrderState().ifPresent(idState -> {
+            if (idState == null) {
+                order.setOrderState(null);
+            } else {
+                OrderState state = orderStateRepo.findById(idState)
+                        .orElseThrow(() -> new RuntimeException("OrderState not found"));
+                order.setOrderState(state);
+            }
+        });
+
+        
+
+        dto.getComment().ifPresent(order::setComment);
+        
         /*
          * / проверка на дату в прошлом
          * if (order.getDateFinishPlan() != null) {
@@ -172,10 +220,14 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("OrderState not found with id=" + newStateId));
 
         order.setOrderState(newState);
+
         if (newState.getName().equals("В работе")) {
             // TODO: Поменять на настоящего пользователя
             order.setDispatcher(userRepository.findById(3)
                     .orElseThrow(() -> new RuntimeException("User not found with id=3")));
+        }
+        if (newState.getName().equals("Отклонена")) {
+            order.setDateFinishFact(Instant.now());
         }
         return orderRepo.save(order);
     }
