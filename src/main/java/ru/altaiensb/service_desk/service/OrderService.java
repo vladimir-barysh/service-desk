@@ -52,23 +52,23 @@ public class OrderService {
 
     public Order create(OrderDTO dto, List<MultipartFile> files, Integer userId) throws IOException {
         Order order = new Order();
-        // генерация номера
+
         Integer maxNomer = orderRepo.findMaxNomer();
         int nextNomer = (maxNomer != null) ? maxNomer + 1 : 1;
         order.setNomer(nextNomer);
 
         order.setName(dto.getName());
         order.setDescription(dto.getDescription());
-        order.setDateCreated(Instant.now()); // дата создания устанавливается автоматически
+        order.setDateCreated(Instant.now());
         order.setDateFinishPlan(dto.getDateFinishPlan());
         order.setDatePostpone(dto.getDatePostpone());
         order.setComment(dto.getComment());
 
-        // временный юзер
+        // TODO: Поменять на настоящего пользователя
         order.setCreator(
                 userRepository.findById(1)
                         .orElseThrow(() -> new RuntimeException("User not found with id=1")));
-        // временный юзер
+        // TODO: Поменять на настоящего пользователя
         order.setInitiator(
                 userRepository.findById(1)
                         .orElseThrow(() -> new RuntimeException("User not found with id=1")));
@@ -172,6 +172,11 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("OrderState not found with id=" + newStateId));
 
         order.setOrderState(newState);
+        if (newState.getName().equals("В работе")) {
+            // TODO: Поменять на настоящего пользователя
+            order.setDispatcher(userRepository.findById(3)
+                    .orElseThrow(() -> new RuntimeException("User not found with id=3")));
+        }
         return orderRepo.save(order);
     }
 
