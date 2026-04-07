@@ -25,6 +25,7 @@ import ru.altaiensb.service_desk.model.OrderPriority;
 import ru.altaiensb.service_desk.model.User;
 import ru.altaiensb.service_desk.repository.*;
 import ru.altaiensb.service_desk.model.OrderState;
+import ru.altaiensb.service_desk.model.OrderTask;
 import ru.altaiensb.service_desk.model.OrderType;
 import ru.altaiensb.service_desk.model.Serv;
 
@@ -36,9 +37,11 @@ public class OrderService {
     private final ServiceRepository servRepo;
     private final OrderTypeRepository orderTypeRepo;
     private final OrderStateRepository orderStateRepo;
-    private final UserRepository userRepository;
+    private final UserRepository userRepo;
     private final OrderPriorityRepository orderPriorityRepo;
-    private final OrderBindingRepository orderBindingRepository;
+    private final OrderBindingRepository orderBindingRepo;
+    private final OrderTaskRepository orderTaskRepo;
+    private final TaskStateRepository taskStateRepo;
 
     private String saveFileToStorage(MultipartFile file) throws IOException {
         String uploadDir = "/api/orderbinding";
@@ -74,11 +77,11 @@ public class OrderService {
 
         // TODO: Поменять на настоящего пользователя
         order.setCreator(
-                userRepository.findById(1)
+                userRepo.findById(1)
                         .orElseThrow(() -> new RuntimeException("User not found with id=1")));
         // TODO: Поменять на настоящего пользователя
         order.setInitiator(
-                userRepository.findById(1)
+                userRepo.findById(1)
                         .orElseThrow(() -> new RuntimeException("User not found with id=1")));
 
         order.setService(
@@ -108,7 +111,7 @@ public class OrderService {
 
         // Если файлы есть — сохраняем их
         if (files != null && !files.isEmpty()) {
-            User currentUser = userRepository.findById(userId)
+            User currentUser = userRepo.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found with id=" + userId));
             for (MultipartFile file : files) {
                 // Сохраняем файл на диск / S3 / etc.
@@ -123,7 +126,7 @@ public class OrderService {
                 binding.setUser(currentUser);
                 binding.setName(file.getOriginalFilename()); // имя файла
 
-                orderBindingRepository.save(binding);
+                orderBindingRepo.save(binding);
             }
         }
 
@@ -219,12 +222,32 @@ public class OrderService {
         OrderState newState = orderStateRepo.findById(newStateId)
                 .orElseThrow(() -> new RuntimeException("OrderState not found with id=" + newStateId));
 
+        OrderTask newTask = new OrderTask();
+
         order.setOrderState(newState);
 
         if (newState.getName().equals("В работе")) {
             // TODO: Поменять на настоящего пользователя
-            order.setDispatcher(userRepository.findById(3)
+            order.setDispatcher(userRepo.findById(3)
                     .orElseThrow(() -> new RuntimeException("User not found with id=3")));
+            
+            newTask.setOrder(order);
+            // TODO: add setWork()
+
+            // TODO: Поменять на настоящего пользователя
+            newTask.setExecutor(userRepo.findById(3)
+                    .orElseThrow(() -> new RuntimeException("User not found with id=3")));
+
+            newTask.setDateFinishPlan(order.getDateFinishPlan());
+            newTask.setDescription(order.getDescription());
+            // TODO: closeParentCheck()
+            newTask.setTaskState(taskStateRepo.findById(1)
+                    .orElseThrow(() -> new RuntimeException("Task state no found with id=1")));
+            newTask.setDateCreated(Instant.now());
+            // TODO: Поменять на настоящего пользователя
+            newTask.setCreator(order.getCreator());
+
+            orderTaskRepo.save(newTask);
         }
         if (newState.getName().equals("Отклонена")) {
             order.setDateFinishFact(Instant.now());
