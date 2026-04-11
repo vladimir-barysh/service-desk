@@ -4,6 +4,7 @@ import ru.altaiensb.service_desk.model.Order;
 import ru.altaiensb.service_desk.service.OrderService;
 import ru.altaiensb.service_desk.dto.OrderDTO;
 import ru.altaiensb.service_desk.dto.OrderStatusUpdateDTO;
+import ru.altaiensb.service_desk.dto.OrderUpdateDTO;
 import ru.altaiensb.service_desk.model.OrderState;
 
 import lombok.RequiredArgsConstructor;
@@ -45,8 +46,8 @@ public class OrderController {
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Order> update(@PathVariable("id") Integer id, @RequestBody OrderDTO dto) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<Order> update(@PathVariable("id") Integer id, @RequestBody OrderUpdateDTO dto) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
