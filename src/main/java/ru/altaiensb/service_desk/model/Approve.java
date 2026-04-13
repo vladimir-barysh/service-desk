@@ -35,7 +35,7 @@ public class Approve {
     private Boolean flagApproved;
 
     @CreationTimestamp
-    @Column(name = "date_c", columnDefinition = "timestamptz")
+    @Column(name = "date_c", columnDefinition = "timestamptz", nullable = false)
     private Instant dateCreated;
 
     @Column(name = "date_plan", columnDefinition = "timestamptz")
