@@ -35,6 +35,8 @@ dependencies {
 
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
     // 3. Драйвер базы (выбери свою — PostgreSQL самый популярный)
     runtimeOnly 'org.postgresql:postgresql'   // ← или 'com.mysql:mysql-connector-j' / 'com.h2database:h2'
 
