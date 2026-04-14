@@ -7,6 +7,7 @@ import java.util.List;
 
 import ru.altaiensb.service_desk.model.Approve;
 import ru.altaiensb.service_desk.repository.ApproveRepository;
+import ru.altaiensb.service_desk.exception.ResourceNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +20,6 @@ public class ApproveService {
     }
 
     public Approve getById(Integer id) {
-        return repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Approve not found with id=" + id));
+        return repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Approve", id));
     }
 }
