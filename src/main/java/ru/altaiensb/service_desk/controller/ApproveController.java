@@ -1,6 +1,5 @@
 package ru.altaiensb.service_desk.controller;
 
-import ru.altaiensb.service_desk.model.Approve;
 import ru.altaiensb.service_desk.service.ApproveService;
 import ru.altaiensb.service_desk.dto.ApproveCreateRequestDTO;
 import ru.altaiensb.service_desk.dto.ApproveResponseDTO;

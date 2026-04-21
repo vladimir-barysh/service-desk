@@ -8,8 +8,8 @@ import java.time.Instant;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 public record ApproveCreateRequestDTO(
-        @NotNull(message = "ID заказа обязателен")
-        @Positive(message = "ID заказа должен быть положительным числом")
+        @NotNull(message = "ID заявки обязателен")
+        @Positive(message = "ID заявки должен быть положительным числом")
         Integer idOrder,
 
         @NotBlank(message = "Название согласования не может быть пустым")
@@ -18,6 +18,10 @@ public record ApproveCreateRequestDTO(
         @NotNull(message = "ID создателя обязателен")
         @Positive(message = "ID пользователя должен быть положительным")
         Integer idUserCreator,
+
+        @NotNull(message = "ID статуса согласования обязателен")
+        @Positive(message = "ID статуса согласования должен быть положительным")
+        Integer idApproveState,
 
         @Future(message = "Плановая дата должна быть в будущем")
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")

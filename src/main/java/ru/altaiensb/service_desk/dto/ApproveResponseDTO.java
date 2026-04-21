@@ -11,7 +11,7 @@ public record ApproveResponseDTO(
         Boolean flagApproved,
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC") Instant dateCreated,
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC") Instant datePlan,
-        Short state,
+        Integer idApproveState,
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC") Instant dateFact,
         String taskText
 ) {}

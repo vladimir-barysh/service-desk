@@ -14,9 +14,11 @@ import ru.altaiensb.service_desk.exception.ResourceNotFoundException;
 import ru.altaiensb.service_desk.model.Approve;
 import ru.altaiensb.service_desk.model.Order;
 import ru.altaiensb.service_desk.model.User;
+import ru.altaiensb.service_desk.model.OrderState;
 import ru.altaiensb.service_desk.repository.ApproveRepository;
 import ru.altaiensb.service_desk.repository.OrderRepository;
 import ru.altaiensb.service_desk.repository.UserRepository;
+import ru.altaiensb.service_desk.repository.OrderStateRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class ApproveService {
     private final ApproveRepository repo;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final OrderStateRepository orderStateRepository;
 
     // Преобразование сущности в DTO
     private ApproveResponseDTO toResponse(Approve approve) {
@@ -35,7 +38,7 @@ public class ApproveService {
                 approve.getFlagApproved(),
                 approve.getDateCreated(),
                 approve.getDatePlan(),
-                approve.getState(),
+                approve.getApproveState() != null ? approve.getApproveState().getIdOrderState() : null,
                 approve.getDateFact(),
                 approve.getTaskText()
         );
@@ -62,13 +65,15 @@ public class ApproveService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order", dto.idOrder()));
         User creator = userRepository.findById(dto.idUserCreator())
                 .orElseThrow(() -> new ResourceNotFoundException("User", dto.idUserCreator()));
+        OrderState state = orderStateRepository.findById(dto.idApproveState())
+                .orElseThrow(() -> new ResourceNotFoundException("OrderState", dto.idApproveState()));
 
         Approve approve = Approve.builder()
                 .order(order)
                 .name(dto.name())
                 .userCreator(creator)
                 .flagApproved(false)
-                .state((short) 0)
+                .approveState(state)
                 .dateCreated(Instant.now())
                 .datePlan(dto.datePlan())
                 .taskText(dto.taskText())
