@@ -12,6 +12,7 @@ public class OrderDTO {
     private Instant dateCreated;
     private Instant dateFinishPlan;
     private Instant dateFinishFact;
+    private Instant dateTechReturn;
     private Integer idOrderParent;
     private Integer idOrderType;
     private Integer idCatItem;
