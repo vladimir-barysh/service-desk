@@ -26,12 +26,14 @@ public class ApproveUser {
     @JoinColumn(name = "id_user", nullable = false)
     private User user;
 
-    @Column(name = "user_role")
-    private Short userRole;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_user_role")
+    private UserRole userRole;
 
+    @Builder.Default
     @ColumnDefault("0")
     @Column(name = "state", nullable = false)
-    private Short state;
+    private Short state = 0;
 
     @Column(name = "result_text")
     private String resultText;

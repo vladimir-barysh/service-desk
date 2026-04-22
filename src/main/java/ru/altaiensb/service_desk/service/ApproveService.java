@@ -8,8 +8,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import ru.altaiensb.service_desk.dto.ApproveCreateRequestDTO;
-import ru.altaiensb.service_desk.dto.ApproveResponseDTO;
+import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveCreateRequestDTO;
+import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveResponseDTO;
 import ru.altaiensb.service_desk.exception.ResourceNotFoundException;
 import ru.altaiensb.service_desk.model.Approve;
 import ru.altaiensb.service_desk.model.Order;

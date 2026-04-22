@@ -1,4 +1,4 @@
-package ru.altaiensb.service_desk.dto;
+package ru.altaiensb.service_desk.dto.ApproveDTO;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.Instant;

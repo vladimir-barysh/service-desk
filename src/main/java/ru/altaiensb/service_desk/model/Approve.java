@@ -34,9 +34,10 @@ public class Approve {
     @Column(name = "name")
     private String name;
 
+    @Builder.Default
     @ColumnDefault("false")
     @Column(name = "flag_approved", nullable = false)
-    private Boolean flagApproved;
+    private Boolean flagApproved = false;
 
     @CreationTimestamp
     @Column(name = "date_c", columnDefinition = "timestamptz", nullable = false)

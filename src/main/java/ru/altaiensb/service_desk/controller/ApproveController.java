@@ -1,9 +1,8 @@
 package ru.altaiensb.service_desk.controller;
 
+import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveCreateRequestDTO;
+import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveResponseDTO;
 import ru.altaiensb.service_desk.service.ApproveService;
-import ru.altaiensb.service_desk.dto.ApproveCreateRequestDTO;
-import ru.altaiensb.service_desk.dto.ApproveResponseDTO;
-
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
