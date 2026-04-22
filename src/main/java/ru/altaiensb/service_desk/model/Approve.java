@@ -23,27 +23,28 @@ public class Approve {
     @JoinColumn(name = "id_order")
     private Order order;
 
-    @Column(name = "name")
-    private String name;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_user_creator")
     private User userCreator;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_order_state")
+    private OrderState approveState;
+
+    @Column(name = "name")
+    private String name;
+
+    @Builder.Default
     @ColumnDefault("false")
     @Column(name = "flag_approved", nullable = false)
-    private Boolean flagApproved;
+    private Boolean flagApproved = false;
 
     @CreationTimestamp
-    @Column(name = "date_c", columnDefinition = "timestamptz")
+    @Column(name = "date_c", columnDefinition = "timestamptz", nullable = false)
     private Instant dateCreated;
 
     @Column(name = "date_plan", columnDefinition = "timestamptz")
     private Instant datePlan;
-
-    @ColumnDefault("0")
-    @Column(name = "state", nullable = false)
-    private Short state;
 
     @Column(name = "date_fact", columnDefinition = "timestamptz")
     private Instant dateFact;
