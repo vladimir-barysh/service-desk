@@ -1,7 +1,9 @@
 package ru.altaiensb.service_desk.model;
 
-import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -28,4 +30,8 @@ public class Group {
 
     @Column(name = "description")
     private String description;
+
+    @Builder.Default
+    @ManyToMany(mappedBy = "groups", fetch = FetchType.LAZY)
+    private Set<User> users = new HashSet<>();
 }

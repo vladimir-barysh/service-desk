@@ -1,5 +1,8 @@
 package ru.altaiensb.service_desk.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,4 +24,7 @@ public class Authority{
     @Column(name = "description")
     private String description;
 
+    @Builder.Default
+    @ManyToMany(mappedBy = "authorities", fetch = FetchType.LAZY)
+    private Set<User> users = new HashSet<>();
 }
