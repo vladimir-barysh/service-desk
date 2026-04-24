@@ -10,12 +10,13 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-@Entity
-@Table(name="it_user", schema = "sd_core")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name="it_user", schema = "sd_core")
 public class User{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -6,12 +6,13 @@ import java.util.Set;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity
-@Table(name = "it_authority", schema = "sd_core")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "it_authority", schema = "sd_core")
 public class Authority{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

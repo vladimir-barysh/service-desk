@@ -1,6 +1,6 @@
 package ru.altaiensb.service_desk.controller;
 
-import ru.altaiensb.service_desk.model.Group;
+import ru.altaiensb.service_desk.dto.GroupDTO.GroupResponseDTO;
 import ru.altaiensb.service_desk.service.GroupService;
 
 import lombok.RequiredArgsConstructor;
@@ -16,12 +16,12 @@ public class GroupController {
     private final GroupService service;
 
     @GetMapping
-    public List<Group> getAll() {
+    public List<GroupResponseDTO> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Group> getById(@PathVariable Integer id) {
+    public ResponseEntity<GroupResponseDTO> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
 }
