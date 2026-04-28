@@ -73,6 +73,7 @@ public class OrderService {
         order.setDateCreated(Instant.now());
         order.setDateFinishPlan(dto.getDateFinishPlan());
         order.setDatePostpone(dto.getDatePostpone());
+        order.setDateTechReturn(dto.getDateTechReturn());
         order.setComment(dto.getComment());
 
         // TODO: Поменять на настоящего пользователя
@@ -142,6 +143,7 @@ public class OrderService {
         dto.getDateFinishPlan().ifPresent(order::setDateFinishPlan);
         dto.getDateFinishFact().ifPresent(order::setDateFinishFact);
         dto.getDatePostpone().ifPresent(order::setDatePostpone);
+        dto.getDateTechReturn().ifPresent(order::setDateTechReturn);
         
         dto.getIdOrderParent().ifPresent(idOrderParent -> {
             if (idOrderParent == null) {

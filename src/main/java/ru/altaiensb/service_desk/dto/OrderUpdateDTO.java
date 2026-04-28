@@ -15,6 +15,7 @@ public class OrderUpdateDTO {
     private JsonNullable<String> description = JsonNullable.undefined();
     private JsonNullable<Instant> dateFinishPlan = JsonNullable.undefined();
     private JsonNullable<Instant> dateFinishFact = JsonNullable.undefined();
+    private JsonNullable<Instant> dateTechReturn = JsonNullable.undefined();
     private JsonNullable<Integer> idOrderParent = JsonNullable.undefined();
     private JsonNullable<Integer> idOrderType = JsonNullable.undefined();
     private JsonNullable<Integer> idCatItem = JsonNullable.undefined();
