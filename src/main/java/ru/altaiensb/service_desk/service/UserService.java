@@ -18,7 +18,7 @@ import ru.altaiensb.service_desk.repository.UserRepository;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final UserRepository userRepository;
+    private final UserRepository repo;
 
     // Преобразование сущности в DTO
     private UserResponseDTO toResponse(User user) {
@@ -55,14 +55,14 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAll() {
-        return userRepository.findAll().stream()
+        return repo.findAll().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public UserResponseDTO getById(Integer id) {
-        User user = userRepository.findById(id)
+        User user = repo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
         return toResponse(user);
     }
