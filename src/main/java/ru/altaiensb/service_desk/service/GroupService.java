@@ -16,7 +16,7 @@ import ru.altaiensb.service_desk.repository.GroupRepository;
 @RequiredArgsConstructor
 public class GroupService {
 
-    private final GroupRepository groupRepository;
+    private final GroupRepository repo;
 
     private GroupResponseDTO toResponse(Group group) {
         return new GroupResponseDTO(
@@ -30,14 +30,14 @@ public class GroupService {
 
     @Transactional(readOnly = true)
     public List<GroupResponseDTO> getAll() {
-        return groupRepository.findAll().stream()
+        return repo.findAll().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public GroupResponseDTO getById(Integer id) {
-        Group group = groupRepository.findById(id)
+        Group group = repo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Group", id));
         return toResponse(group);
     }
