@@ -88,8 +88,6 @@ public class OrderService {
         int nextNomer = (maxNomer != null) ? maxNomer + 1 : 1;
 
         // Загрузка обязательных связей из DTO
-        User creator = userRepo.findById(dto.idCreator())
-                .orElseThrow(() -> new ResourceNotFoundException("User (creator)", dto.idCreator()));
         User initiator = userRepo.findById(dto.idInitiator())
                 .orElseThrow(() -> new ResourceNotFoundException("User (initiator)", dto.idInitiator()));
         OrderType orderType = orderTypeRepo.findById(dto.idOrderType())
@@ -98,6 +96,10 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Service", dto.idService()));
         CatalogItem catalogItem = catalogItemRepo.findById(dto.idCatItem())
                 .orElseThrow(() -> new ResourceNotFoundException("CatalogItem", dto.idCatItem()));
+
+        // TODO: взять создателя заявки из контекста
+        User creator = userRepo.findById(1)
+                .orElseThrow(() -> new ResourceNotFoundException("User (creator)", 1));
 
         // Значения по умолчанию
         OrderState defaultState = orderStateRepo.findByName("Новая")
