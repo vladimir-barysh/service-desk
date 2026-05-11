@@ -14,7 +14,7 @@ public class Scale {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_scale")
-    private Integer scale;
+    private Integer idScale;
 
     @Column(name = "name")
     private String name;

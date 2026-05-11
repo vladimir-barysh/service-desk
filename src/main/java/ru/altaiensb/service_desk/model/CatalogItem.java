@@ -1,9 +1,10 @@
 package ru.altaiensb.service_desk.model;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 import jakarta.persistence.*;
-
 import lombok.*;
 
 @Entity
@@ -18,15 +19,14 @@ public class CatalogItem {
     @Column(name = "id_catitem")
     private Integer idCatitem;
 
-    @ManyToOne
-    @JoinColumn(name = "id_service")
-    private Serv service;
+    @Column(name = "id_service")
+    private Integer idService;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_catitem_parent")
     private CatalogItem catitemParent;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_exp_type", nullable = false)
     private ExpType expType;
 
@@ -48,11 +48,11 @@ public class CatalogItem {
     @Column(name = "info")
     private String info;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_effect")
     private Effect effect;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_scale")
     private Scale scale;
 
@@ -62,7 +62,17 @@ public class CatalogItem {
     @Column(name = "exp_out_date")
     private LocalDate expOutDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_catitem_state")
-    private Effect catitemState;
+    private CatitemState catitemState;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "it_service_catitem",
+        schema = "sd_core",
+        joinColumns = @JoinColumn(name = "id_catitem"),
+        inverseJoinColumns = @JoinColumn(name = "id_service")
+    )
+    @Builder.Default
+    private Set<Serv> services = new HashSet<>();
 }

@@ -19,7 +19,7 @@ import ru.altaiensb.service_desk.repository.*;
 @RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepo;
-    private final ServiceRepository servRepo;
+    private final ServRepository servRepo;
     private final OrderTypeRepository orderTypeRepo;
     private final OrderStateRepository orderStateRepo;
     private final UserRepository userRepo;

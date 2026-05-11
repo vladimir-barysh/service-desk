@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import ru.altaiensb.service_desk.model.Serv;
 
 @Repository
-public interface ServiceRepository extends JpaRepository<Serv, Integer>{
+public interface ServRepository extends JpaRepository<Serv, Integer>{
     /*
     Автоматически реализуются следующие методы:
         save(entity)
