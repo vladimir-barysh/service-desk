@@ -1,4 +1,4 @@
-package ru.altaiensb.service_desk.dto;
+package ru.altaiensb.service_desk.dto.OrderDTO;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

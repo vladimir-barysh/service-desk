@@ -1,23 +1,23 @@
 package ru.altaiensb.service_desk.model;
 
-import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Collections;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import jakarta.persistence.*;
-
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.ColumnDefault;
 
-@Entity
-@Table(name="it_user", schema = "sd_core")
-@Data
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User implements UserDetails{
+@Entity
+@Table(name="it_user", schema = "sd_core")
+public class User{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_it_user")
@@ -45,14 +45,18 @@ public class User implements UserDetails{
     @Column(name = "tab_num_1c")
     private String tabNum1c;
 
-    @Column(name = "d_c")
+    @CreationTimestamp
+    @Column(name = "d_c", nullable = false, updatable = false)
     private LocalDate dateCreate;
 
-    @Column(name = "d_m")
+    @UpdateTimestamp
+    @Column(name = "d_m", nullable = false)
     private LocalDate dateModern;
 
-    @Column(name = "is_user")
-    private Boolean isUser;
+    @Builder.Default
+    @ColumnDefault("true")
+    @Column(name = "is_user", nullable = false)
+    private Boolean isUser = true;
 
     @Column(name = "d_prin")
     private LocalDate datePrin;
@@ -87,29 +91,23 @@ public class User implements UserDetails{
     @Column(name = "grade")
     private Integer grade;
 
-    public String getUsername() { return loginAd; }
-    public String getPassword() { return ctiPassword; }
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
-    } 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "it_user_group",
+        schema = "sd_core",
+        joinColumns = @JoinColumn(name = "id_user"),
+        inverseJoinColumns = @JoinColumn(name = "id_group")
+    )
+    @Builder.Default
+    private Set<Group> groups = new HashSet<>();
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "it_user_authority",
+        schema = "sd_core",
+        joinColumns = @JoinColumn(name = "id_user"),
+        inverseJoinColumns = @JoinColumn(name = "id_authority")
+    )
+    @Builder.Default
+    private Set<Authority> authorities = new HashSet<>();
 }

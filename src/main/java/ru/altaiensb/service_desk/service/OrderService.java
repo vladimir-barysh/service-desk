@@ -2,259 +2,254 @@ package ru.altaiensb.service_desk.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.openapitools.jackson.nullable.JsonNullable;
-
-import ru.altaiensb.service_desk.dto.OrderDTO;
-import ru.altaiensb.service_desk.dto.OrderUpdateDTO;
-import ru.altaiensb.service_desk.model.Order;
-import ru.altaiensb.service_desk.model.OrderBinding;
-import ru.altaiensb.service_desk.model.OrderPriority;
-import ru.altaiensb.service_desk.model.User;
+import ru.altaiensb.service_desk.dto.OrderDTO.OrderCreateRequestDTO;
+import ru.altaiensb.service_desk.dto.OrderDTO.OrderResponseDTO;
+import ru.altaiensb.service_desk.dto.OrderDTO.OrderUpdateDTO;
+import ru.altaiensb.service_desk.exception.ResourceNotFoundException;
+import ru.altaiensb.service_desk.model.*;
 import ru.altaiensb.service_desk.repository.*;
-import ru.altaiensb.service_desk.model.OrderState;
-import ru.altaiensb.service_desk.model.OrderTask;
-import ru.altaiensb.service_desk.model.OrderType;
-import ru.altaiensb.service_desk.model.Serv;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
-
     private final OrderRepository orderRepo;
     private final ServiceRepository servRepo;
     private final OrderTypeRepository orderTypeRepo;
     private final OrderStateRepository orderStateRepo;
     private final UserRepository userRepo;
     private final OrderPriorityRepository orderPriorityRepo;
-    private final OrderBindingRepository orderBindingRepo;
     private final OrderTaskRepository orderTaskRepo;
     private final TaskStateRepository taskStateRepo;
+    private final CatalogItemRepository catalogItemRepo;
+    private final OrderSourceRepository orderSourceRepo;
 
-    private String saveFileToStorage(MultipartFile file) throws IOException {
-        String uploadDir = "/api/orderbinding";
-        Files.createDirectories(Paths.get(uploadDir));
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        Path filePath = Paths.get(uploadDir + fileName);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        return filePath.toString();
+    // ---------------------------- Respons ----------------------------
+    private OrderResponseDTO toResponse(Order order) {
+        return new OrderResponseDTO(
+            order.getIdOrder(),
+            order.getNomer(),
+            order.getName(),
+            order.getDescription(),
+            order.getDateCreated(),
+            order.getDateFinishPlan(),
+            order.getDateFinishFact(),
+            order.getDatePostpone(),
+            order.getDateTechReturn(),
+            order.getComment(),
+            order.getResultText(),
+            order.getOrderParent() != null ? order.getOrderParent().getIdOrder() : null,
+            order.getInitiator() != null ? order.getInitiator().getIdItUser() : null,
+            order.getCreator() != null ? order.getCreator().getIdItUser() : null,
+            order.getDispatcher() != null ? order.getDispatcher().getIdItUser() : null,
+            order.getDispatcher() != null ? order.getDispatcher().getFio1c() : null,
+            order.getExecutor() != null ? order.getExecutor().getIdItUser() : null,
+            order.getExecutor() != null ? order.getExecutor().getFio1c() : null,
+            order.getOrderType() != null ? order.getOrderType().getIdOrderType() : null,
+            order.getOrderType() != null ? order.getOrderType().getName() : null,
+            order.getCatalogItem() != null ? order.getCatalogItem().getIdCatitem() : null,
+            order.getCatalogItem() != null ? order.getCatalogItem().getName() : null,
+            order.getService() != null ? order.getService().getIdService() : null,
+            order.getService() != null ? order.getService().getFullname() : null,
+            order.getOrderState() != null ? order.getOrderState().getIdOrderState() : null,
+            order.getOrderState() != null ? order.getOrderState().getName() : null,
+            order.getOrderPriority() != null ? order.getOrderPriority().getIdOrderPriority() : null,
+            order.getOrderPriority() != null ? order.getOrderPriority().getName() : null,
+            order.getOrderSource() != null ? order.getOrderSource().getIdOrderSource() : null,
+            order.getOrderSource() != null ? order.getOrderSource().getName() : null
+        );
     }
 
-    public List<Order> getAll() {
-        return orderRepo.findAll();
+    // ---------------------------- READ ----------------------------
+    @Transactional(readOnly = true)
+    public List<OrderResponseDTO> getAll() {
+        return orderRepo.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
-    public Order getById(Integer id) {
-        return orderRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id=" + id));
+    @Transactional(readOnly = true)
+    public OrderResponseDTO getById(Integer id) {
+        Order order = orderRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", id));
+        return toResponse(order);
     }
 
-    public Order create(OrderDTO dto, List<MultipartFile> files, Integer userId) throws IOException {
-        Order order = new Order();
-
+    // ---------------------------- CREATE ----------------------------
+    @Transactional
+    public OrderResponseDTO create(OrderCreateRequestDTO dto){
+        // Генерация номера
         Integer maxNomer = orderRepo.findMaxNomer();
         int nextNomer = (maxNomer != null) ? maxNomer + 1 : 1;
-        order.setNomer(nextNomer);
 
-        order.setName(dto.getName());
-        order.setDescription(dto.getDescription());
-        order.setDateCreated(Instant.now());
-        order.setDateFinishPlan(dto.getDateFinishPlan());
-        order.setDatePostpone(dto.getDatePostpone());
-        order.setDateTechReturn(dto.getDateTechReturn());
-        order.setComment(dto.getComment());
+        // Загрузка обязательных связей из DTO
+        User creator = userRepo.findById(dto.idCreator())
+                .orElseThrow(() -> new ResourceNotFoundException("User (creator)", dto.idCreator()));
+        User initiator = userRepo.findById(dto.idInitiator())
+                .orElseThrow(() -> new ResourceNotFoundException("User (initiator)", dto.idInitiator()));
+        OrderType orderType = orderTypeRepo.findById(dto.idOrderType())
+                .orElseThrow(() -> new ResourceNotFoundException("OrderType", dto.idOrderType()));
+        Serv service = servRepo.findById(dto.idService())
+                .orElseThrow(() -> new ResourceNotFoundException("Service", dto.idService()));
+        CatalogItem catalogItem = catalogItemRepo.findById(dto.idCatItem())
+                .orElseThrow(() -> new ResourceNotFoundException("CatalogItem", dto.idCatItem()));
 
-        // TODO: Поменять на настоящего пользователя
-        order.setCreator(
-                userRepo.findById(1)
-                        .orElseThrow(() -> new RuntimeException("User not found with id=1")));
-        // TODO: Поменять на настоящего пользователя
-        order.setInitiator(
-                userRepo.findById(1)
-                        .orElseThrow(() -> new RuntimeException("User not found with id=1")));
+        // Значения по умолчанию
+        OrderState defaultState = orderStateRepo.findByName("Новая")
+                .orElseThrow(() -> new ResourceNotFoundException("OrderState", "Новая"));
+        OrderPriority defaultPriority = orderPriorityRepo.findByName("Низкий")
+                .orElseThrow(() -> new ResourceNotFoundException("OrderPriority", "Низкий"));
 
-        order.setService(
-                servRepo.findById(dto.getIdService())
-                        .orElseThrow(() -> new RuntimeException("Service not found")));
+        // Необязательные поля
+        OrderSource orderSource = dto.idOrderSource() != null
+                ? orderSourceRepo.findById(dto.idOrderSource())
+                        .orElseThrow(() -> new ResourceNotFoundException("OrderSource", dto.idOrderSource()))
+                : null;
 
-        order.setOrderType(
-                orderTypeRepo.findById(dto.getIdOrderType())
-                        .orElseThrow(() -> new RuntimeException("OrderType not found")));
-
-        order.setOrderState(
-                orderStateRepo.findByName("Новая")
-                        .orElseThrow(() -> new RuntimeException("State NEW not found")));
-
-        order.setOrderPriority(
-                orderPriorityRepo.findByName("Низкий")
-                        .orElseThrow(() -> new RuntimeException("OrderPriority not found")));
-
-        // проверка на дату в прошлом
-        if (order.getDateFinishPlan() != null) {
-            if (order.getDateFinishPlan().isBefore(Instant.now())) {
-                throw new IllegalArgumentException("Дата в прошлом");
-            }
+        // Валидация в зависимости от типа
+        String typeName = orderType.getName();
+        switch (typeName) {
+        case "ЗНТ" -> {
+                if (dto.dateTechReturn() == null) {
+                throw new IllegalArgumentException("Для заявки типа ЗНТ обязательно указать дату возврата техники");
+                }
+        }
+        case "ЗНО", "ЗНИ", "ЗНД" -> {
+        // специфические проверки при необходимости
+        }
+        default -> throw new IllegalArgumentException("Неизвестный тип заявки: " + typeName);
         }
 
-        order = orderRepo.save(order);
+        // Построение сущности
+        Order order = Order.builder()
+                .nomer(nextNomer)
+                .name(null)
+                .description(dto.description())
+                .dateCreated(Instant.now())
+                .dateFinishPlan("ЗНД".equals(typeName) ? null : dto.dateFinishPlan())
+                .datePostpone(null)
+                .dateTechReturn("ЗНТ".equals(typeName) ? dto.dateTechReturn() : null) 
+                .comment(dto.comment())
+                .creator(creator)
+                .initiator(initiator)
+                .orderType(orderType)
+                .service(service)
+                .catalogItem(catalogItem)
+                .orderPriority(defaultPriority)
+                .orderState(defaultState)
+                .dispatcher(null)
+                .executor(null)
+                .orderSource(orderSource)
+                .orderParent(null)
+                .resultText(null)
+                .build();
 
-        // Если файлы есть — сохраняем их
-        if (files != null && !files.isEmpty()) {
-            User currentUser = userRepo.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found with id=" + userId));
-            for (MultipartFile file : files) {
-                // Сохраняем файл на диск / S3 / etc.
-                String filePath = saveFileToStorage(file); // реализуй метод: возвращает путь (e.g.
-                                                           // "/uploads/filename.ext")
+        Order saved = orderRepo.save(order);
 
-                // Создаём запись в OrderBinding
-                OrderBinding binding = new OrderBinding();
-                binding.setPath(filePath);
-                binding.setOrder(order);
-                binding.setDateCreated(Instant.now());
-                binding.setUser(currentUser);
-                binding.setName(file.getOriginalFilename()); // имя файла
-
-                orderBindingRepo.save(binding);
-            }
-        }
-
-        return order;
+        return toResponse(saved);
     }
 
-    public Order update(Integer id, OrderUpdateDTO dto) {
+    // ---------------------------- UPDATE ----------------------------
+    @Transactional
+        public OrderResponseDTO update(Integer id, OrderUpdateDTO dto) {
         Order order = orderRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id=" + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Order", id));
 
         dto.getName().ifPresent(order::setName);
         dto.getDescription().ifPresent(order::setDescription);
         dto.getDateFinishPlan().ifPresent(order::setDateFinishPlan);
         dto.getDateFinishFact().ifPresent(order::setDateFinishFact);
         dto.getDatePostpone().ifPresent(order::setDatePostpone);
-        dto.getDateTechReturn().ifPresent(order::setDateTechReturn);
-        
-        dto.getIdOrderParent().ifPresent(idOrderParent -> {
-            if (idOrderParent == null) {
-                order.setOrderParent(null);
-            } else {
-                Order parent = orderRepo.findById(idOrderParent)
-                        .orElseThrow(() -> new RuntimeException("OrderParent not found"));
-                order.setOrderParent(parent);
-            }
-        });
-
-        dto.getIdOrderType().ifPresent(idType -> {
-            if (idType == null) {
-                order.setOrderType(null);
-            } else {
-                OrderType type = orderTypeRepo.findById(idType)
-                        .orElseThrow(() -> new RuntimeException("OrderType not found"));
-                order.setOrderType(type);
-            }
-        });
-
-        dto.getIdService().ifPresent(idService -> {
-            if (idService == null) {
-                order.setService(null);
-            } else {
-                Serv service = servRepo.findById(idService)
-                        .orElseThrow(() -> new RuntimeException("Service not found"));
-                order.setService(service);
-            }
-        });
-
-        dto.getIdOrderPriority().ifPresent(idPriority -> {
-            if (idPriority == null) {
-                order.setOrderPriority(null);
-            } else {
-                OrderPriority priority = orderPriorityRepo.findById(idPriority)
-                        .orElseThrow(() -> new RuntimeException("OrderPriority not found"));
-                order.setOrderPriority(priority);
-            }
-        });
-
-        dto.getIdOrderState().ifPresent(idState -> {
-            if (idState == null) {
-                order.setOrderState(null);
-            } else {
-                OrderState state = orderStateRepo.findById(idState)
-                        .orElseThrow(() -> new RuntimeException("OrderState not found"));
-                order.setOrderState(state);
-            }
-        });
-
-        
-
         dto.getComment().ifPresent(order::setComment);
-        
-        /*
-         * / проверка на дату в прошлом
-         * if (order.getDateFinishPlan() != null) {
-         * if (order.getDateFinishPlan().isBefore(Instant.now())) {
-         * throw new IllegalArgumentException("Дата в прошлом");
-         * }
-         * }
-         */
 
-        return orderRepo.save(order);
+        // Обработка ссылок с возможным null
+        setReference(dto.getIdOrderParent(), orderRepo, order::setOrderParent);
+        setReference(dto.getIdOrderType(), orderTypeRepo, order::setOrderType);
+        setReference(dto.getIdService(), servRepo, order::setService);
+        setReference(dto.getIdOrderPriority(), orderPriorityRepo, order::setOrderPriority);
+        setReference(dto.getIdOrderState(), orderStateRepo, order::setOrderState);
+        setReference(dto.getIdCreator(), userRepo, order::setCreator);
+        setReference(dto.getIdInitiator(), userRepo, order::setInitiator);
+        setReference(dto.getIdDispatcher(), userRepo, order::setDispatcher);
+        setReference(dto.getIdExecutor(), userRepo, order::setExecutor);
+        setReference(dto.getIdOrderSource(), orderSourceRepo, order::setOrderSource);
+
+        // Валидация даты
+        if (order.getDateFinishPlan() != null && order.getDateFinishPlan().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Плановая дата не может быть в прошлом");
+        }
+
+        Order updated = orderRepo.save(order);
+        return toResponse(updated);
     }
 
+    private <T> void setReference(org.openapitools.jackson.nullable.JsonNullable<Integer> nullableId,
+                                  org.springframework.data.jpa.repository.JpaRepository<T, Integer> repo,
+                                  java.util.function.Consumer<T> setter) {
+        nullableId.ifPresent(id -> {
+            if (id == null) {
+                setter.accept(null);
+            } else {
+                T entity = repo.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException(repo.getClass().getSimpleName(), id));
+                setter.accept(entity);
+            }
+        });
+    }
+
+    // ---------------------------- DELETE ----------------------------
+    @Transactional
     public void delete(Integer id) {
-        Order order = orderRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id=" + id));
-        orderRepo.delete(order);
+        if (!orderRepo.existsById(id)) {
+            throw new ResourceNotFoundException("Order", id);
+        }
+        orderRepo.deleteById(id);
     }
 
-    public Order updateStatus(Integer id, Integer newStateId) {
+    // ---------------------------- STATUS UPDATE ----------------------------
+    @Transactional
+    public OrderResponseDTO updateStatus(Integer id, Integer newStateId) {
         Order order = orderRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with id=" + id));
-
+                .orElseThrow(() -> new ResourceNotFoundException("Order", id));
         OrderState newState = orderStateRepo.findById(newStateId)
-                .orElseThrow(() -> new RuntimeException("OrderState not found with id=" + newStateId));
+                .orElseThrow(() -> new ResourceNotFoundException("OrderState", newStateId));
 
-        OrderTask newTask = new OrderTask();
-
+        OrderState oldState = order.getOrderState();
         order.setOrderState(newState);
 
-        if (newState.getName().equals("В работе")) {
-            // TODO: Поменять на настоящего пользователя
-            order.setDispatcher(userRepo.findById(3)
-                    .orElseThrow(() -> new RuntimeException("User not found with id=3")));
-            
-            newTask.setOrder(order);
-            // TODO: add setWork()
-
-            // TODO: Поменять на настоящего пользователя
-            newTask.setExecutor(userRepo.findById(3)
-                    .orElseThrow(() -> new RuntimeException("User not found with id=3")));
-
-            newTask.setDateFinishPlan(order.getDateFinishPlan());
-            newTask.setDescription(order.getDescription());
-            // TODO: closeParentCheck()
-            newTask.setTaskState(taskStateRepo.findById(1)
-                    .orElseThrow(() -> new RuntimeException("Task state no found with id=1")));
-            newTask.setDateCreated(Instant.now());
-            // TODO: Поменять на настоящего пользователя
-            newTask.setCreator(order.getCreator());
-
-            orderTaskRepo.save(newTask);
+        // Логика при переходе в "В работе"
+        if (newState.getName().equals("В работе") && (oldState == null || !oldState.getName().equals("В работе"))) {
+            // Назначить диспетчера, если не задан
+            if (order.getDispatcher() == null) {
+                User dispatcher = userRepo.findById(3) // TODO: взять из контекста
+                        .orElseThrow(() -> new ResourceNotFoundException("Dispatcher default", 3));
+                order.setDispatcher(dispatcher);
+            }
+            // Создать задачу
+            OrderTask task = OrderTask.builder()
+                    .order(order)
+                    .executor(order.getExecutor())
+                    .dateFinishPlan(order.getDateFinishPlan())
+                    .description(order.getDescription())
+                    .taskState(taskStateRepo.findById(1)
+                            .orElseThrow(() -> new ResourceNotFoundException("TaskState", 1)))
+                    .dateCreated(Instant.now())
+                    .creator(order.getCreator())
+                    .build();
+            orderTaskRepo.save(task);
         }
-        if (newState.getName().equals("Отклонена")) {
+
+        // При отклонении – заполнить дату факта
+        if (newState.getName().equals("Отклонена") && order.getDateFinishFact() == null) {
             order.setDateFinishFact(Instant.now());
         }
-        return orderRepo.save(order);
-    }
 
+        Order updated = orderRepo.save(order);
+        return toResponse(updated);
+    }
 }

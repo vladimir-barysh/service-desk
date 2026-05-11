@@ -1,24 +1,27 @@
 package ru.altaiensb.service_desk.model;
 
-import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
+import jakarta.persistence.*;
 import lombok.*;
 
-@Entity
-@Table(name = "it_group", schema = "sd_core")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "it_group", schema = "sd_core")
 public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_group")
     private Integer idGroup;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_user")
-    private User user;
+    private User responsibleUser;
 
     @Column(name = "name")
     private String name;
@@ -28,4 +31,8 @@ public class Group {
 
     @Column(name = "description")
     private String description;
+
+    @Builder.Default
+    @ManyToMany(mappedBy = "groups", fetch = FetchType.LAZY)
+    private Set<User> users = new HashSet<>();
 }

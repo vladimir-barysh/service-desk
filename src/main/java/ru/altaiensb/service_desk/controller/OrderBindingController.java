@@ -1,6 +1,6 @@
 package ru.altaiensb.service_desk.controller;
 
-import ru.altaiensb.service_desk.dto.OrderBindingDTO;
+import ru.altaiensb.service_desk.dto.OrderDTO.OrderBindingDTO;
 import ru.altaiensb.service_desk.model.OrderBinding;
 import ru.altaiensb.service_desk.repository.OrderBindingRepository;
 import ru.altaiensb.service_desk.service.OrderBindingService;
