@@ -40,6 +40,9 @@ public class Order {
     @Column(name = "date_postpone", columnDefinition = "timestamptz")
     private Instant datePostpone;
 
+    @Column(name = "date_tech_return", columnDefinition = "timestamptz")
+    private Instant dateTechReturn;
+
     @Column(name = "comment")
     private String comment;
 

@@ -162,6 +162,23 @@ public class GlobalExceptionHandler {
     }
 
 
+
+/**
+ * Обработчик для 
+ */    
+
+    @ExceptionHandler(IllegalArgumentException.class)
+        public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
+        ErrorResponse error = ErrorResponse.of(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Error",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.badRequest().body(error);
+        }
+
+
 /**
  * Обработчик для всех необработанных исключений
  * Возвращает HTTP 500 Internal Server Error. Скрывает детали стека от клиента, выводя их в консоль
