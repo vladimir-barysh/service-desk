@@ -10,6 +10,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 public record OrderCreateRequestDTO(
     // Обязательные поля для всех типов заявок
+    @NotBlank(message = "Название заявки не может быть пустым")
+    String name,
+
     @NotNull(message = "ID сервиса обязателен")
     @Positive(message = "ID сервиса должен быть положительным")
     Integer idService,
