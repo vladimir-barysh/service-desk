@@ -1,6 +1,5 @@
 package ru.altaiensb.service_desk.dto.CatalogItemDTO;
 
-import java.util.Set;
 import java.time.LocalDate;
 
 public record CatalogItemResponseDTO(
