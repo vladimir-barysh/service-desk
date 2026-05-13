@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.0.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.springdoc.openapi-gradle-plugin' version '1.9.0'
 }
 
 group = 'ru.altaiensb'
@@ -19,42 +20,46 @@ repositories {
 }
 
 dependencies {
-    // 1. База Spring Boot (у тебя уже есть, но оставляем)
-    implementation 'org.springframework.boot:spring-boot-starter'
-
-    // 2. Самое главное — Spring Data JPA + Hibernate + jakarta.persistence
+    // Web и Data JPA
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-
     implementation 'org.springframework.boot:spring-boot-starter-web'
-
     implementation 'org.springframework.boot:spring-boot-starter-security'
-
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
-
-    implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
-
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    // 3. Драйвер базы (выбери свою — PostgreSQL самый популярный)
-    runtimeOnly 'org.postgresql:postgresql'   // ← или 'com.mysql:mysql-connector-j' / 'com.h2database:h2'
+    // Дополнительные утилиты
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.10'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
 
-    // 4. Lombok (обязательно compileOnly + annotationProcessor)
+    // База данных
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // 5. Для тестов (уже есть, но добавляем Lombok и в тесты)
+    // DevTools
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'     // авторестарт
+
+    // Тесты
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
-
-    // Опционально, но очень удобно
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'  // авторестарт
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// Настройка плагина для генерации OpenAPI-спецификации
+openApi {
+    apiDocsUrl.set("http://localhost:8081/v3/api-docs")
+    outputDir.set(file("$buildDir/generated/openapi"))
+    outputFileName.set("openapi.json")
+
+    // Увеличиваем максимальное время ожидания запуска приложения
+    waitTimeInSeconds.set(60)
 }

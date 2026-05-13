@@ -44,6 +44,9 @@ public class SecurityConfig {
 
                 // ← Основная часть: правила доступа
                 .authorizeHttpRequests(auth -> auth
+                        // Разрешаем доступ к документации OpenAPI
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll()
+
                         // Разрешаем всем (даже не залогиненным) доступ к типам заявок
                         .requestMatchers("/api/**").permitAll()
 
