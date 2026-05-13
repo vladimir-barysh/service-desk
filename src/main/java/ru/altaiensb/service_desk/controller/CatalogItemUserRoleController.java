@@ -1,6 +1,6 @@
 package ru.altaiensb.service_desk.controller;
 
-import ru.altaiensb.service_desk.model.CatalogItemUserRole;
+import ru.altaiensb.service_desk.dto.CatalogItemUserRoleDTO.CatalogItemUserRoleResponseDTO;
 import ru.altaiensb.service_desk.service.CatalogItemUserRoleService;
 
 import lombok.RequiredArgsConstructor;
@@ -16,12 +16,12 @@ public class CatalogItemUserRoleController {
     private final CatalogItemUserRoleService service;
 
     @GetMapping
-    public List<CatalogItemUserRole> getAll() {
+    public List<CatalogItemUserRoleResponseDTO> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CatalogItemUserRole> getById(@PathVariable Integer id) {
+    public ResponseEntity<CatalogItemUserRoleResponseDTO> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
 }

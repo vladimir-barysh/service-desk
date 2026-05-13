@@ -1,11 +1,11 @@
 package ru.altaiensb.service_desk.model;
+import java.time.LocalDate;
 
-import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hibernate.annotations.ColumnDefault;
-
 import jakarta.persistence.*;
-
 import lombok.*;
 
 @Entity
@@ -33,10 +33,10 @@ public class Serv {
     private String developer;
 
     @Column(name = "date_s", columnDefinition = "timestamptz")
-    private Instant dateS;
+    private LocalDate dateS;
 
     @Column(name = "date_f", columnDefinition = "timestamptz")
-    private Instant dateF;
+    private LocalDate dateF;
 
     @Column(name = "priznak_is")
     private Boolean priznakIs;
@@ -57,18 +57,24 @@ public class Serv {
     @JoinColumn(name = "id_service_parent")
     private Serv serviceParent;
 
+    @Builder.Default
     @ColumnDefault("false")
     @Column(name = "is_need_approval", nullable = false)
-    private Boolean isNeedApproval;
+    private Boolean isNeedApproval = false;
 
+    @Builder.Default
     @ColumnDefault("true")
     @Column(name = "is_service", nullable = false)
-    private Boolean isService;
+    private Boolean isService = true;
 
+    @Builder.Default
     @Column(name = "business_critical", nullable = false, columnDefinition = "SMALLINT DEFAULT 3 CHECK (business_critical IN (1, 2, 3))")
-    private Short businessCritical;
+    private Short businessCritical = 3;
 
     @Column(name = "basis_s")
     private String basisS;
 
+    @ManyToMany(mappedBy = "services", fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<CatalogItem> catalogItems = new HashSet<>();
 }

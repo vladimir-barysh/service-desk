@@ -1,6 +1,6 @@
 package ru.altaiensb.service_desk.controller;
 
-import ru.altaiensb.service_desk.model.CatalogItem;
+import ru.altaiensb.service_desk.dto.CatalogItemDTO.CatalogItemResponseDTO;
 import ru.altaiensb.service_desk.service.CatalogItemService;
 
 import lombok.RequiredArgsConstructor;
@@ -16,12 +16,12 @@ public class CatalogItemController {
     private final CatalogItemService service;
 
     @GetMapping
-    public List<CatalogItem> getAll() {
+    public List<CatalogItemResponseDTO> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CatalogItem> getById(@PathVariable Integer id) {
+    public ResponseEntity<CatalogItemResponseDTO> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
 }
