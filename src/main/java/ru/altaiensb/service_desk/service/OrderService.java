@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +21,7 @@ import ru.altaiensb.service_desk.repository.*;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
+    @PersistenceContext private EntityManager entityManager;    
     private final OrderRepository orderRepo;
     private final ServRepository servRepo;
     private final OrderTypeRepository orderTypeRepo;
@@ -28,6 +32,7 @@ public class OrderService {
     private final TaskStateRepository taskStateRepo;
     private final CatalogItemRepository catalogItemRepo;
     private final OrderSourceRepository orderSourceRepo;
+
 
     // ---------------------------- Respons ----------------------------
     private OrderResponseDTO toResponse(Order order) {
@@ -83,9 +88,6 @@ public class OrderService {
     // ---------------------------- CREATE ----------------------------
     @Transactional
     public OrderResponseDTO create(OrderCreateRequestDTO dto){
-        // Генерация номера
-        Integer maxNomer = orderRepo.findMaxNomer();
-        int nextNomer = (maxNomer != null) ? maxNomer + 1 : 1;
 
         // Загрузка обязательных связей из DTO
         User initiator = userRepo.findById(dto.idInitiator())
@@ -104,6 +106,8 @@ public class OrderService {
         // Значения по умолчанию
         OrderState defaultState = orderStateRepo.findByName("Новая")
                 .orElseThrow(() -> new ResourceNotFoundException("OrderState", "Новая"));
+
+        // TODO: приоритет не передаётся клиентом
         OrderPriority defaultPriority = orderPriorityRepo.findByName("Низкий")
                 .orElseThrow(() -> new ResourceNotFoundException("OrderPriority", "Низкий"));
 
@@ -111,7 +115,8 @@ public class OrderService {
         OrderSource orderSource = dto.idOrderSource() != null
                 ? orderSourceRepo.findById(dto.idOrderSource())
                         .orElseThrow(() -> new ResourceNotFoundException("OrderSource", dto.idOrderSource()))
-                : null;
+                : orderSourceRepo.findByName("web")
+                        .orElseThrow(() -> new ResourceNotFoundException("OrderSource", "web"));
 
         // Валидация в зависимости от типа
         String typeName = orderType.getName();
@@ -129,7 +134,6 @@ public class OrderService {
 
         // Построение сущности
         Order order = Order.builder()
-                .nomer(nextNomer)
                 .name(null)
                 .description(dto.description())
                 .dateCreated(Instant.now())
@@ -152,7 +156,7 @@ public class OrderService {
                 .build();
 
         Order saved = orderRepo.save(order);
-
+        entityManager.refresh(saved);
         return toResponse(saved);
     }
 
