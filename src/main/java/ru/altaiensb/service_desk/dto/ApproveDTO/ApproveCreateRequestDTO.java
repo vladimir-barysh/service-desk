@@ -20,10 +20,6 @@ public record ApproveCreateRequestDTO(
         @Positive(message = "ID пользователя должен быть положительным")
         Integer idUserCreator,
 
-        @NotNull(message = "ID статуса согласования обязателен")
-        @Positive(message = "ID статуса согласования должен быть положительным")
-        Integer idApproveState,
-
         // НЕ обязательные поля
         @Future(message = "Плановая дата должна быть в будущем")
         @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
