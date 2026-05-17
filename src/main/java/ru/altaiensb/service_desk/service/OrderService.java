@@ -144,7 +144,7 @@ public class OrderService {
                 .executor(null)
                 .orderSource(orderSource)
                 .orderParent(null)
-                .resultText(null)
+                .resultText("")
                 .build();
 
         Order saved = orderRepo.save(order);
