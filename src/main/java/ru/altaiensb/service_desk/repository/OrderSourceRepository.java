@@ -1,5 +1,6 @@
 package ru.altaiensb.service_desk.repository;
 
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,4 +17,5 @@ public interface OrderSourceRepository extends JpaRepository<OrderSource, Intege
         existsById(id)
         count()
     */
+   Optional<OrderSource> findByName(String name);
 }

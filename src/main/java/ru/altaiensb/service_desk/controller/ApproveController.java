@@ -20,8 +20,8 @@ public class ApproveController {
     private final ApproveService service;
 
     @GetMapping
-    public List<ApproveResponseDTO> getAll() {
-        return service.getAll();
+    public ResponseEntity<List<ApproveResponseDTO>> getByOrderId( @RequestParam Integer orderId) {
+        return ResponseEntity.ok(service.getByOrderId(orderId));
     }
 
     @GetMapping("/{id}")

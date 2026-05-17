@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,12 +26,13 @@ import ru.altaiensb.service_desk.repository.OrderStateRepository;
 @Service
 @RequiredArgsConstructor
 public class ApproveService {
-    private final ApproveRepository repo;
-    private final OrderRepository orderRepository;
-    private final UserRepository userRepository;
-    private final OrderStateRepository orderStateRepository;
+    @PersistenceContext private EntityManager entityManager; 
+    private final ApproveRepository approveRepo;
+    private final OrderRepository orderRepo;
+    private final UserRepository userRepo;
+    private final OrderStateRepository orderStateRepo;
 
-    // Преобразование сущности в DTO
+    // ---------------------------- Respons ----------------------------
     private ApproveResponseDTO toResponse(Approve approve) {
         return new ApproveResponseDTO(
                 approve.getIdApprove(),
@@ -36,50 +40,56 @@ public class ApproveService {
                 approve.getName(),
                 approve.getUserCreator() != null ? approve.getUserCreator().getIdItUser() : null,
                 approve.getFlagApproved(),
+                approve.getApproveState() != null ? approve.getApproveState().getIdOrderState() : null,
                 approve.getDateCreated(),
                 approve.getDatePlan(),
-                approve.getApproveState() != null ? approve.getApproveState().getIdOrderState() : null,
                 approve.getDateFact(),
                 approve.getTaskText()
         );
     }
 
+    // ---------------------------- READ ----------------------------
     @Transactional(readOnly = true)
-    public List<ApproveResponseDTO> getAll() {
-        return repo.findAll().stream()
+    public List<ApproveResponseDTO> getByOrderId(Integer orderId) {
+        List<Approve> approve = approveRepo.findByOrder_IdOrder(orderId);
+        return approve.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public ApproveResponseDTO getById(Integer id) {
-        Approve approve = repo.findById(id)
+        Approve approve = approveRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Approve", id));
         return toResponse(approve);
     }
 
+    // ---------------------------- CREATE ----------------------------
     @Transactional
     public ApproveResponseDTO create(ApproveCreateRequestDTO dto) {
-        // Находим связанные сущности
-        Order order = orderRepository.findById(dto.idOrder())
+        // Загрузка обязательных связей из DTO
+        Order order = orderRepo.findById(dto.idOrder())
                 .orElseThrow(() -> new ResourceNotFoundException("Order", dto.idOrder()));
-        User creator = userRepository.findById(dto.idUserCreator())
+        User creator = userRepo.findById(dto.idUserCreator())
                 .orElseThrow(() -> new ResourceNotFoundException("User", dto.idUserCreator()));
-        OrderState state = orderStateRepository.findById(dto.idApproveState())
-                .orElseThrow(() -> new ResourceNotFoundException("OrderState", dto.idApproveState()));
+
+        // Значения по умолчанию
+        OrderState defaultState = orderStateRepo.findByName("На согласовании")
+                .orElseThrow(() -> new ResourceNotFoundException("OrderState", "На согласовании"));
 
         Approve approve = Approve.builder()
                 .order(order)
                 .name(dto.name())
                 .userCreator(creator)
                 .flagApproved(false)
-                .approveState(state)
+                .approveState(defaultState)
                 .dateCreated(Instant.now())
                 .datePlan(dto.datePlan())
                 .taskText(dto.taskText())
                 .build();
 
-        Approve saved = repo.save(approve);
+        Approve saved = approveRepo.save(approve);
+        entityManager.refresh(saved);
         return toResponse(saved);
     }
 }

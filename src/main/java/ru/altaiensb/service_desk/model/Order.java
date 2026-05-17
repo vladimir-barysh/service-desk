@@ -18,7 +18,7 @@ public class Order {
     @Column(name = "id_order")
     private Integer idOrder;
 
-    @Column(name = "nomer")
+    @Column(name = "nomer", insertable = false, updatable = false)
     private Integer nomer;
 
     @Column(name = "name")

@@ -3,6 +3,8 @@ package ru.altaiensb.service_desk.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 import ru.altaiensb.service_desk.model.Approve;
 
 @Repository
@@ -16,4 +18,6 @@ public interface ApproveRepository extends JpaRepository<Approve, Integer>{
         existsById(id)
         count()
     */
+
+    List<Approve> findByOrder_IdOrder(Integer idOrder);
 }
