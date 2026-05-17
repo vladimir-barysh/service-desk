@@ -83,9 +83,6 @@ public class OrderService {
     // ---------------------------- CREATE ----------------------------
     @Transactional
     public OrderResponseDTO create(OrderCreateRequestDTO dto){
-        // Генерация номера
-        Integer maxNomer = orderRepo.findMaxNomer();
-        int nextNomer = (maxNomer != null) ? maxNomer + 1 : 1;
 
         // Загрузка обязательных связей из DTO
         User initiator = userRepo.findById(dto.idInitiator())
@@ -129,8 +126,7 @@ public class OrderService {
 
         // Построение сущности
         Order order = Order.builder()
-                .nomer(nextNomer)
-                .name(null)
+                .name(dto.name())
                 .description(dto.description())
                 .dateCreated(Instant.now())
                 .dateFinishPlan("ЗНД".equals(typeName) ? null : dto.dateFinishPlan())
