@@ -39,7 +39,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<OrderResponseDTO> update(@PathVariable Integer id, @RequestBody OrderUpdateDTO dto) {
+    public ResponseEntity<OrderResponseDTO> update(@PathVariable("id") Integer id, @RequestBody OrderUpdateDTO dto) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 
