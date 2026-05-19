@@ -37,7 +37,6 @@ public class ApproveController {
     
     @PostMapping
     public ResponseEntity<ApproveResponseDTO> create(@Valid @RequestBody ApproveCreateRequestDTO dto) {
-        ApproveResponseDTO created = service.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
     }
 }

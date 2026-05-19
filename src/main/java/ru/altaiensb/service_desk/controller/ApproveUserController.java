@@ -22,8 +22,8 @@ public class ApproveUserController {
     private final ApproveUserService service;
 
     @GetMapping
-    public List<ApproveUserResponseDTO> getAll() {
-        return service.getAll();
+    public ResponseEntity<List<ApproveUserResponseDTO>> getByApproveId( @RequestParam Integer approveId) {
+        return ResponseEntity.ok(service.getByApproveId(approveId));
     }
 
     @GetMapping("/{id}")

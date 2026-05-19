@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import ru.altaiensb.service_desk.model.CatalogItemUserRole;
 
@@ -20,4 +21,5 @@ public interface CatalogItemUserRoleRepository extends JpaRepository<CatalogItem
     */
 
     List<CatalogItemUserRole> findByService_IdService(Integer serviceId);
+    Optional<CatalogItemUserRole> findByService_IdServiceAndUser_IdItUser(Integer serviceId, Integer userId);
 }

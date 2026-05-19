@@ -28,7 +28,7 @@ public class ApproveUserService {
     private final UserRepository userRepo;
     private final UserRoleRepository userRoleRepo;
 
-    // Преобразование сущности в DTO
+    // ---------------------------- Respons ----------------------------
     private ApproveUserResponseDTO toResponse(ApproveUser entity) {
         return new ApproveUserResponseDTO(
                 entity.getIdApproveUser(),
@@ -36,17 +36,19 @@ public class ApproveUserService {
                 entity.getUser() != null ? entity.getUser().getIdItUser() : null,
                 entity.getUserRole() != null ? entity.getUserRole().getIdUserRole() : null,
                 entity.getState(),
+                entity.getDatePlan(),
                 entity.getResultText(),
                 entity.getApproveUserParent() != null ? entity.getApproveUserParent().getIdApproveUser() : null,
-                entity.getDatePlan(),
                 entity.getDateFact(),
                 entity.getTaskText()
         );
     }
 
+    // ---------------------------- READ ----------------------------
     @Transactional(readOnly = true)
-    public List<ApproveUserResponseDTO> getAll() {
-        return approveUserRepo.findAll().stream()
+    public List<ApproveUserResponseDTO> getByApproveId(Integer approveId) {
+        List<ApproveUser> approveUser = approveUserRepo.findByApprove_IdApprove(approveId);
+        return approveUser.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -58,6 +60,7 @@ public class ApproveUserService {
         return toResponse(entity);
     }
 
+    // ---------------------------- CREATE ----------------------------
     @Transactional
     public ApproveUserResponseDTO create(ApproveUserCreateRequestDTO dto) {
         // Обязательные связанные сущности

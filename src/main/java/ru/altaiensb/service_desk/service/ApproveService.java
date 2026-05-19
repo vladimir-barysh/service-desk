@@ -8,6 +8,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,14 +17,18 @@ import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveResponseDTO;
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveCandidateResponseDTO;
 import ru.altaiensb.service_desk.exception.ResourceNotFoundException;
 import ru.altaiensb.service_desk.model.Approve;
+import ru.altaiensb.service_desk.model.ApproveUser;
 import ru.altaiensb.service_desk.model.CatalogItemUserRole;
 import ru.altaiensb.service_desk.model.Order;
 import ru.altaiensb.service_desk.model.User;
+import ru.altaiensb.service_desk.model.UserRole;
 import ru.altaiensb.service_desk.model.OrderState;
 import ru.altaiensb.service_desk.repository.ApproveRepository;
+import ru.altaiensb.service_desk.repository.ApproveUserRepository;
 import ru.altaiensb.service_desk.repository.CatalogItemUserRoleRepository;
 import ru.altaiensb.service_desk.repository.OrderRepository;
 import ru.altaiensb.service_desk.repository.UserRepository;
+import ru.altaiensb.service_desk.util.WorkingHoursUtil;
 import ru.altaiensb.service_desk.repository.OrderStateRepository;
 
 @Service
@@ -35,6 +40,7 @@ public class ApproveService {
     private final UserRepository userRepo;
     private final OrderStateRepository orderStateRepo;
     private final CatalogItemUserRoleRepository catalogItemUserRoleRepo;
+    private final ApproveUserRepository approveUserRepo;
 
     // ---------------------------- Respons ----------------------------
     private ApproveResponseDTO toResponse(Approve approve) {
@@ -88,26 +94,88 @@ public class ApproveService {
         // Загрузка обязательных связей из DTO
         Order order = orderRepo.findById(dto.idOrder())
                 .orElseThrow(() -> new ResourceNotFoundException("Order", dto.idOrder()));
-        User creator = userRepo.findById(dto.idUserCreator())
-                .orElseThrow(() -> new ResourceNotFoundException("User", dto.idUserCreator()));
+        // TODO: взять создателя заявки из контекста
+        User creator = userRepo.findById(1)
+                .orElseThrow(() -> new ResourceNotFoundException("User (creator)", 1));
 
+        /* 
+        Добавление пользователей в согласование 
+        */
+        String orderType = order.getOrderType().getName();
+        boolean hasUsers = dto.userIds() != null && !dto.userIds().isEmpty();
+
+        // Проверка соответствия
+        if (hasUsers) {
+                // Если переданы пользователи – тип должен быть ЗНО или ЗНТ
+                if (!"ЗНО".equals(orderType) && !"ЗНТ".equals(orderType)) {
+                        throw new IllegalArgumentException("Ручной выбор согласующих допустим только для заявок типа ЗНО или ЗНТ");
+                }
+        } else {
+                // Если пользователи не переданы – тип должен быть ЗНД или ЗНИ (автоматическое создание)
+                if (!"ЗНД".equals(orderType) && !"ЗНИ".equals(orderType)) {
+                        throw new IllegalArgumentException("Для заявок типа " + orderType + " необходимо указать список согласующих");
+                }
+        }
+
+        // Определяем список согласующих
+        List<User> approvers;
+        Integer serviceId = order.getService().getIdService();
+        if (hasUsers) {
+                approvers = userRepo.findAllById(dto.userIds());
+                if (approvers.size() != dto.userIds().size()) {
+                        throw new IllegalArgumentException("Некоторые из переданных пользователей не найдены");
+                }
+        } else {
+                // Автоматический выбор для ЗНД и ЗНИ
+                approvers = catalogItemUserRoleRepo.findByService_IdService(order.getService().getIdService())
+                        .stream()
+                        .filter(cir -> cir.getUserRole() != null && "Держатель сервиса".equals(cir.getUserRole().getName()))
+                        .map(CatalogItemUserRole::getUser)
+                        .distinct()
+                        .collect(Collectors.toList());
+                if (approvers.isEmpty()) {
+                        throw new IllegalArgumentException("Для сервиса не настроены согласующие");
+                }
+        }
+        
+        
         // Значения по умолчанию
         OrderState defaultState = orderStateRepo.findByName("На согласовании")
                 .orElseThrow(() -> new ResourceNotFoundException("OrderState", "На согласовании"));
+        Instant datePlan = WorkingHoursUtil.addWorkHours(Instant.now(), 24);
 
+        // Постройка сущностей
         Approve approve = Approve.builder()
                 .order(order)
-                .name(dto.name())
+                .name("Согласование по " + orderType + " №" + order.getNomer())
                 .userCreator(creator)
                 .flagApproved(false)
                 .approveState(defaultState)
                 .dateCreated(Instant.now())
-                .datePlan(dto.datePlan())
-                .taskText(dto.taskText())
+                .datePlan(datePlan)
                 .build();
+        Approve savedApprove = approveRepo.save(approve);
+        entityManager.refresh(savedApprove);
 
-        Approve saved = approveRepo.save(approve);
-        entityManager.refresh(saved);
-        return toResponse(saved);
+        List<ApproveUser> approveUsers = new ArrayList<>();
+        for (User approver : approvers) {
+                Integer userId = approver.getIdItUser();
+                UserRole role = catalogItemUserRoleRepo
+                        .findByService_IdServiceAndUser_IdItUser(serviceId, userId)
+                        .map(CatalogItemUserRole::getUserRole)
+                        .orElseThrow(() -> new ResourceNotFoundException("Роль для сервиса" + serviceId + " и пользователя " + userId));
+
+                ApproveUser approveUser = ApproveUser.builder()
+                        .approve(savedApprove)
+                        .user(approver)
+                        .userRole(role)
+                        .state((short) 0)
+                        .datePlan(datePlan)
+                        .build();
+                approveUsers.add(approveUser);
+        }
+        approveUserRepo.saveAll(approveUsers);
+
+        return toResponse(savedApprove);
     }
 }
