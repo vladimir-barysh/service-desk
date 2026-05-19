@@ -2,6 +2,7 @@ package ru.altaiensb.service_desk.controller;
 
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveCreateRequestDTO;
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveResponseDTO;
+import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveCandidateResponseDTO;
 import ru.altaiensb.service_desk.service.ApproveService;
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +23,11 @@ public class ApproveController {
     @GetMapping
     public ResponseEntity<List<ApproveResponseDTO>> getByOrderId( @RequestParam Integer orderId) {
         return ResponseEntity.ok(service.getByOrderId(orderId));
+    }
+
+    @GetMapping("/candidate")
+    public ResponseEntity<List<ApproveCandidateResponseDTO>> getApproveCandidateByServiceId(@RequestParam Integer serviceId) {
+        return ResponseEntity.ok(service.getApproveCandidateByServiceId(serviceId));
     }
 
     @GetMapping("/{id}")
