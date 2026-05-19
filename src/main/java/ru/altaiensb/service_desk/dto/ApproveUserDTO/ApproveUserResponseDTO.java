@@ -10,8 +10,10 @@ import java.time.Instant;
 public record ApproveUserResponseDTO(
     Integer idApproveUser,
     Integer idApprove,
-    Integer idUser,
-    Integer idUserRole,
+    Integer userId,
+    String userFio,
+    Integer userRoleId,
+    String userRoleName,
     Short   state,
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC") 

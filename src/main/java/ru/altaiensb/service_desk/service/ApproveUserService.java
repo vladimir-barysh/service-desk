@@ -34,7 +34,9 @@ public class ApproveUserService {
                 entity.getIdApproveUser(),
                 entity.getApprove() != null ? entity.getApprove().getIdApprove() : null,
                 entity.getUser() != null ? entity.getUser().getIdItUser() : null,
+                entity.getUser() != null ? entity.getUser().getFio1c() : null,
                 entity.getUserRole() != null ? entity.getUserRole().getIdUserRole() : null,
+                entity.getUserRole() != null ? entity.getUserRole().getName() : null,
                 entity.getState(),
                 entity.getDatePlan(),
                 entity.getResultText(),
@@ -54,6 +56,14 @@ public class ApproveUserService {
     }
 
     @Transactional(readOnly = true)
+    public List<ApproveUserResponseDTO> getByOrderId(Integer orderId) {
+        List<ApproveUser> approveUsers = approveUserRepo.findByOrderId(orderId);
+        return approveUsers.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public ApproveUserResponseDTO getById(Integer id) {
         ApproveUser entity = approveUserRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ApproveUser", id));
@@ -61,7 +71,7 @@ public class ApproveUserService {
     }
 
     // ---------------------------- CREATE ----------------------------
-    @Transactional
+    /* @Transactional
     public ApproveUserResponseDTO create(ApproveUserCreateRequestDTO dto) {
         // Обязательные связанные сущности
         Approve approve = approveRepo.findById(dto.idApprove())
@@ -100,5 +110,5 @@ public class ApproveUserService {
         // Сохранение
         ApproveUser saved = approveUserRepo.save(entity);
         return toResponse(saved);
-    }
+    } */
 }

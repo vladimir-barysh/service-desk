@@ -26,14 +26,19 @@ public class ApproveUserController {
         return ResponseEntity.ok(service.getByApproveId(approveId));
     }
 
+    @GetMapping("/by-order")
+    public ResponseEntity<List<ApproveUserResponseDTO>> getByOrderId(@RequestParam Integer orderId) {
+        return ResponseEntity.ok(service.getByOrderId(orderId));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApproveUserResponseDTO> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
 
-    @PostMapping
+/*     @PostMapping
     public ResponseEntity<ApproveUserResponseDTO> create(@Valid @RequestBody ApproveUserCreateRequestDTO dto) {
         ApproveUserResponseDTO created = service.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
-    }
+    } */
 }
