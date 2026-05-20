@@ -89,6 +89,16 @@ public class ApproveService {
     }
 
     // ---------------------------- CREATE ----------------------------
+    // Автоматическое создание согласования для ЗНД и ЗНИ
+    @Transactional
+    public ApproveResponseDTO createAuto(Order order) {
+        ApproveCreateRequestDTO dto = new ApproveCreateRequestDTO(
+                order.getIdOrder(),
+                null
+        );
+        return create(dto);
+    }
+
     @Transactional
     public ApproveResponseDTO create(ApproveCreateRequestDTO dto) {
         // Загрузка обязательных связей из DTO
@@ -140,7 +150,7 @@ public class ApproveService {
         
         
         // Значения по умолчанию
-        OrderState defaultState = orderStateRepo.findByName("На согласовании")
+        OrderState defaultState = orderStateRepo.findByName("В ожидании")
                 .orElseThrow(() -> new ResourceNotFoundException("OrderState", "На согласовании"));
         Instant datePlan = WorkingHoursUtil.addWorkHours(Instant.now(), 24);
 

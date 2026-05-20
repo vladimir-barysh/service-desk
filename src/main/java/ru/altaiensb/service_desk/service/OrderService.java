@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +21,7 @@ import ru.altaiensb.service_desk.repository.*;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
+    @PersistenceContext private EntityManager entityManager;
     private final OrderRepository orderRepo;
     private final ServRepository servRepo;
     private final OrderTypeRepository orderTypeRepo;
@@ -28,6 +32,7 @@ public class OrderService {
     private final TaskStateRepository taskStateRepo;
     private final CatalogItemRepository catalogItemRepo;
     private final OrderSourceRepository orderSourceRepo;
+    private final ApproveService approveService;
 
     // ---------------------------- Respons ----------------------------
     private OrderResponseDTO toResponse(Order order) {
@@ -146,10 +151,15 @@ public class OrderService {
                 .orderParent(null)
                 .resultText("")
                 .build();
+        Order savedOrder = orderRepo.save(order);
+        entityManager.refresh(savedOrder);
 
-        Order saved = orderRepo.save(order);
+        // Автоматическое создание согласования для ЗНД и ЗНИ
+        if ("ЗНД".equals(typeName) || "ЗНИ".equals(typeName)) {
+            approveService.createAuto(savedOrder);
+        }
 
-        return toResponse(saved);
+        return toResponse(savedOrder);
     }
 
     // ---------------------------- UPDATE ----------------------------
