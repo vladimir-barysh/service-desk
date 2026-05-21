@@ -30,6 +30,11 @@ public class ApproveController {
         return ResponseEntity.ok(service.getApproveCandidateByServiceId(serviceId));
     }
 
+    @PatchMapping("/{id}/start")
+    public ResponseEntity<ApproveResponseDTO> startProcess(@PathVariable Integer id) {
+        return ResponseEntity.ok(service.startProcess(id));
+    }
+    
     @GetMapping("/{id}")
     public ResponseEntity<ApproveResponseDTO> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));

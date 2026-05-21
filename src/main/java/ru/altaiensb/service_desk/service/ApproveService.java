@@ -151,8 +151,8 @@ public class ApproveService {
         
         // Значения по умолчанию
         OrderState defaultState = orderStateRepo.findByName("В ожидании")
-                .orElseThrow(() -> new ResourceNotFoundException("OrderState", "На согласовании"));
-        Instant datePlan = WorkingHoursUtil.addWorkHours(Instant.now(), 24);
+                .orElseThrow(() -> new ResourceNotFoundException("OrderState", "В ожидании"));
+/*         Instant datePlan = WorkingHoursUtil.addWorkHours(Instant.now(), 24); */
 
         // Постройка сущностей
         Approve approve = Approve.builder()
@@ -162,7 +162,7 @@ public class ApproveService {
                 .flagApproved(false)
                 .approveState(defaultState)
                 .dateCreated(Instant.now())
-                .datePlan(datePlan)
+/*                 .datePlan(datePlan) */
                 .build();
         Approve savedApprove = approveRepo.save(approve);
         entityManager.refresh(savedApprove);
@@ -180,12 +180,43 @@ public class ApproveService {
                         .user(approver)
                         .userRole(role)
                         .state((short) 0)
-                        .datePlan(datePlan)
+/*                         .datePlan(datePlan) */
                         .build();
                 approveUsers.add(approveUser);
         }
         approveUserRepo.saveAll(approveUsers);
 
         return toResponse(savedApprove);
+    }
+
+    // ---------------------------- UPDATE ----------------------------
+    @Transactional
+        public ApproveResponseDTO startProcess(Integer approveId) {
+        Approve approve = approveRepo.findById(approveId)
+                .orElseThrow(() -> new ResourceNotFoundException("Approve", approveId));
+        
+        // Проверка, не запущено ли ещё это согласование
+        if (approve.getApproveState().getIdOrderState() == 7) {
+                throw new IllegalStateException("Согласование уже запущено");
+        }
+        
+        // Меняем статус на "На согласовании" (id = 7)
+        OrderState inProgressState = orderStateRepo.findById(7)
+                .orElseThrow(() -> new ResourceNotFoundException("OrderState", 7));
+        approve.setApproveState(inProgressState);
+        
+        // Устанавливаем плановую дату через 24 рабочих часа
+        Instant datePlan = WorkingHoursUtil.addWorkHours(Instant.now(), 24);
+        approve.setDatePlan(datePlan);
+
+        // Обновляем плановую дату у всех участников этого согласования
+        List<ApproveUser> approveUsers = approveUserRepo.findByApprove_IdApprove(approveId);
+        for (ApproveUser user : approveUsers) {
+                user.setDatePlan(datePlan);
+        }
+        approveUserRepo.saveAll(approveUsers);
+        
+        Approve saved = approveRepo.save(approve);
+        return toResponse(saved);
     }
 }
