@@ -191,7 +191,7 @@ public class ApproveService {
 
     // ---------------------------- UPDATE ----------------------------
     @Transactional
-        public ApproveResponseDTO startProcess(Integer approveId) {
+    public ApproveResponseDTO startProcess(Integer approveId) {
         Approve approve = approveRepo.findById(approveId)
                 .orElseThrow(() -> new ResourceNotFoundException("Approve", approveId));
         
@@ -218,5 +218,13 @@ public class ApproveService {
         
         Approve saved = approveRepo.save(approve);
         return toResponse(saved);
+    }
+
+    // ---------------------------- DELETE ----------------------------
+    @Transactional
+    public void delete(Integer approveId) {
+        Approve approve = approveRepo.findById(approveId)
+                .orElseThrow(() -> new ResourceNotFoundException("Approve", approveId));
+        approveRepo.delete(approve);
     }
 }

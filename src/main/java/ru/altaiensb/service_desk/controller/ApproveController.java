@@ -34,10 +34,16 @@ public class ApproveController {
     public ResponseEntity<ApproveResponseDTO> startProcess(@PathVariable Integer id) {
         return ResponseEntity.ok(service.startProcess(id));
     }
-    
+
     @GetMapping("/{id}")
     public ResponseEntity<ApproveResponseDTO> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
     
     @PostMapping
