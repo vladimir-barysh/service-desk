@@ -75,17 +75,38 @@ public class ApproveService {
     }
 
     @Transactional(readOnly = true)
-    public List<ApproveCandidateResponseDTO> getApproveCandidateByServiceId(Integer serviceId) {
-        List<CatalogItemUserRole> roles = catalogItemUserRoleRepo.findByService_IdService(serviceId);
-        return roles.stream()
-                .map(role -> new ApproveCandidateResponseDTO(
-                role.getUser().getIdItUser(),
-                role.getUser().getFio1c(),
-                role.getUserRole().getName(),
-                role.getPodr() != null ? role.getPodr().getName() : null
-                ))
-                .distinct() // по idUser
-                .collect(Collectors.toList());
+    public List<ApproveCandidateResponseDTO> getCandidatesForOrder(Integer orderId) {
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
+        String orderTypeName = order.getOrderType().getName();
+        Integer serviceId = order.getService().getIdService();
+
+        if ("ЗНД".equals(orderTypeName)) {
+                // Кандидаты по сервису из it_catitem_user_role
+                List<CatalogItemUserRole> roles = catalogItemUserRoleRepo.findByService_IdService(serviceId);
+                return roles.stream()
+                        .map(role -> new ApproveCandidateResponseDTO(
+                                role.getUser().getIdItUser(),
+                                role.getUser().getFio1c(),
+                                role.getUserRole().getName(),
+                                role.getPodr() != null ? role.getPodr().getName() : null
+                        ))
+                        .distinct()
+                        .collect(Collectors.toList());
+        } else if ("ЗНИ".equals(orderTypeName) || "ЗНО".equals(orderTypeName) || "ЗНТ".equals(orderTypeName)) {
+                // Все пользователи
+                List<User> users = userRepo.findAll();
+                return users.stream()
+                        .map(user -> new ApproveCandidateResponseDTO(
+                                user.getIdItUser(),
+                                user.getFio1c(),
+                                null, // роль определена только для пользователей сервиса
+                                user.getPodr() != null ? user.getPodr().getName() : null
+                        ))
+                        .collect(Collectors.toList());
+        } else {
+                throw new IllegalArgumentException("Неизвестный тип заявки: " + orderTypeName);
+        }
     }
 
     // ---------------------------- CREATE ----------------------------
@@ -152,7 +173,6 @@ public class ApproveService {
         // Значения по умолчанию
         OrderState defaultState = orderStateRepo.findByName("В ожидании")
                 .orElseThrow(() -> new ResourceNotFoundException("OrderState", "В ожидании"));
-/*         Instant datePlan = WorkingHoursUtil.addWorkHours(Instant.now(), 24); */
 
         // Постройка сущностей
         Approve approve = Approve.builder()
@@ -162,7 +182,6 @@ public class ApproveService {
                 .flagApproved(false)
                 .approveState(defaultState)
                 .dateCreated(Instant.now())
-/*                 .datePlan(datePlan) */
                 .build();
         Approve savedApprove = approveRepo.save(approve);
         entityManager.refresh(savedApprove);
@@ -180,7 +199,6 @@ public class ApproveService {
                         .user(approver)
                         .userRole(role)
                         .state((short) 0)
-/*                         .datePlan(datePlan) */
                         .build();
                 approveUsers.add(approveUser);
         }

@@ -26,8 +26,8 @@ public class ApproveController {
     }
 
     @GetMapping("/candidate")
-    public ResponseEntity<List<ApproveCandidateResponseDTO>> getApproveCandidateByServiceId(@RequestParam Integer serviceId) {
-        return ResponseEntity.ok(service.getApproveCandidateByServiceId(serviceId));
+    public ResponseEntity<List<ApproveCandidateResponseDTO>> getApproveCandidate(@RequestParam Integer orderId) {
+        return ResponseEntity.ok(service.getCandidatesForOrder(orderId));
     }
 
     @PatchMapping("/{id}/start")
