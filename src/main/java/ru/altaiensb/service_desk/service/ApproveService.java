@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveCreateRequestDTO;
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveResponseDTO;
@@ -28,6 +29,7 @@ import ru.altaiensb.service_desk.repository.ApproveUserRepository;
 import ru.altaiensb.service_desk.repository.CatalogItemUserRoleRepository;
 import ru.altaiensb.service_desk.repository.OrderRepository;
 import ru.altaiensb.service_desk.repository.UserRepository;
+import ru.altaiensb.service_desk.repository.UserRoleRepository;
 import ru.altaiensb.service_desk.util.WorkingHoursUtil;
 import ru.altaiensb.service_desk.repository.OrderStateRepository;
 
@@ -41,6 +43,7 @@ public class ApproveService {
     private final OrderStateRepository orderStateRepo;
     private final CatalogItemUserRoleRepository catalogItemUserRoleRepo;
     private final ApproveUserRepository approveUserRepo;
+    private final UserRoleRepository userRoleRepo;
 
     // ---------------------------- Respons ----------------------------
     private ApproveResponseDTO toResponse(Approve approve) {
@@ -120,61 +123,66 @@ public class ApproveService {
         return create(dto);
     }
 
+    private record ApproveUserCandidate(User user, UserRole role) {}
+
     @Transactional
     public ApproveResponseDTO create(ApproveCreateRequestDTO dto) {
-        // Загрузка обязательных связей из DTO
         Order order = orderRepo.findById(dto.idOrder())
                 .orElseThrow(() -> new ResourceNotFoundException("Order", dto.idOrder()));
+
         // TODO: взять создателя заявки из контекста
         User creator = userRepo.findById(1)
                 .orElseThrow(() -> new ResourceNotFoundException("User (creator)", 1));
 
-        /* 
-        Добавление пользователей в согласование 
-        */
         String orderType = order.getOrderType().getName();
         boolean hasUsers = dto.userIds() != null && !dto.userIds().isEmpty();
-
-        // Проверка соответствия
-        if (hasUsers) {
-                // Если переданы пользователи – тип должен быть ЗНО или ЗНТ
-                if (!"ЗНО".equals(orderType) && !"ЗНТ".equals(orderType)) {
-                        throw new IllegalArgumentException("Ручной выбор согласующих допустим только для заявок типа ЗНО или ЗНТ");
-                }
-        } else {
-                // Если пользователи не переданы – тип должен быть ЗНД или ЗНИ (автоматическое создание)
-                if (!"ЗНД".equals(orderType) && !"ЗНИ".equals(orderType)) {
-                        throw new IllegalArgumentException("Для заявок типа " + orderType + " необходимо указать список согласующих");
-                }
-        }
-
-        // Определяем список согласующих
-        List<User> approvers;
         Integer serviceId = order.getService().getIdService();
+
+        // Сборка пар (пользователь, роль)
+        List<ApproveUserCandidate> candidates = new ArrayList<>();
+
         if (hasUsers) {
-                approvers = userRepo.findAllById(dto.userIds());
-                if (approvers.size() != dto.userIds().size()) {
-                        throw new IllegalArgumentException("Некоторые из переданных пользователей не найдены");
+            // Ручной выбор
+            List<User> users = userRepo.findAllById(dto.userIds());
+            if (users.size() != dto.userIds().size()) {
+                throw new IllegalArgumentException("Некоторые из переданных пользователей не найдены");
+            }
+
+            UserRole defaultRole = userRoleRepo.findByName("Согласующий")
+                    .orElseThrow(() -> new ResourceNotFoundException("UserRole", "Согласующий"));
+
+            for (User user : users) {
+                UserRole role = defaultRole;
+                if ("ЗНД".equals(orderType)) {
+                    role = catalogItemUserRoleRepo
+                            .findByService_IdServiceAndUser_IdItUser(serviceId, user.getIdItUser())
+                            .map(CatalogItemUserRole::getUserRole)
+                            .orElseThrow(() -> new ResourceNotFoundException("Роль для сервиса " + serviceId + " и пользователя " + user.getIdItUser()));
                 }
+                candidates.add(new ApproveUserCandidate(user, role));
+            }
         } else {
-                // Автоматический выбор для ЗНД и ЗНИ
-                approvers = catalogItemUserRoleRepo.findByService_IdService(order.getService().getIdService())
-                        .stream()
-                        .filter(cir -> cir.getUserRole() != null && "Держатель сервиса".equals(cir.getUserRole().getName()))
-                        .map(CatalogItemUserRole::getUser)
-                        .distinct()
-                        .collect(Collectors.toList());
-                if (approvers.isEmpty()) {
-                        throw new IllegalArgumentException("Для сервиса не настроены согласующие");
-                }
+            // Автоматическое создание (только для ЗНД и ЗНИ)
+            if (!"ЗНД".equals(orderType) && !"ЗНИ".equals(orderType)) {
+                throw new IllegalArgumentException("Для заявок типа " + orderType + " недоступно автоматическое создание");
+            }
+
+            List<CatalogItemUserRole> roles = catalogItemUserRoleRepo.findByService_IdService(serviceId)
+                    .stream()
+                    .filter(cir -> cir.getUserRole() != null && "Держатель сервиса".equals(cir.getUserRole().getName()))
+                    .collect(Collectors.toList());
+            if (roles.isEmpty()) {
+                throw new IllegalArgumentException("Для сервиса не настроены согласующие с ролью 'Держатель сервиса'");
+            }
+
+            for (CatalogItemUserRole role : roles) {
+                candidates.add(new ApproveUserCandidate(role.getUser(), role.getUserRole()));
+            }
         }
-        
-        
-        // Значения по умолчанию
+        // Создание Approve
         OrderState defaultState = orderStateRepo.findByName("В ожидании")
                 .orElseThrow(() -> new ResourceNotFoundException("OrderState", "В ожидании"));
 
-        // Постройка сущностей
         Approve approve = Approve.builder()
                 .order(order)
                 .name("Согласование по " + orderType + " №" + order.getNomer())
@@ -184,24 +192,16 @@ public class ApproveService {
                 .dateCreated(Instant.now())
                 .build();
         Approve savedApprove = approveRepo.save(approve);
-        entityManager.refresh(savedApprove);
 
-        List<ApproveUser> approveUsers = new ArrayList<>();
-        for (User approver : approvers) {
-                Integer userId = approver.getIdItUser();
-                UserRole role = catalogItemUserRoleRepo
-                        .findByService_IdServiceAndUser_IdItUser(serviceId, userId)
-                        .map(CatalogItemUserRole::getUserRole)
-                        .orElseThrow(() -> new ResourceNotFoundException("Роль для сервиса" + serviceId + " и пользователя " + userId));
-
-                ApproveUser approveUser = ApproveUser.builder()
+        // Создание ApproveUser
+        List<ApproveUser> approveUsers = candidates.stream()
+                .map(c -> ApproveUser.builder()
                         .approve(savedApprove)
-                        .user(approver)
-                        .userRole(role)
+                        .user(c.user())
+                        .userRole(c.role())
                         .state((short) 0)
-                        .build();
-                approveUsers.add(approveUser);
-        }
+                        .build())
+                .collect(Collectors.toList());
         approveUserRepo.saveAll(approveUsers);
 
         return toResponse(savedApprove);
@@ -242,7 +242,26 @@ public class ApproveService {
     @Transactional
     public void delete(Integer approveId) {
         Approve approve = approveRepo.findById(approveId)
-                .orElseThrow(() -> new ResourceNotFoundException("Approve", approveId));
+            	.orElseThrow(() -> new ResourceNotFoundException("Approve", approveId));
         approveRepo.delete(approve);
     }
+
+    @Transactional
+	public List<ApproveResponseDTO> refreshByOrder(Integer orderId) {
+    	// Удаляем все согласования для заявки (каскадно удалятся и approve_users)
+        List<Approve> oldApproves = approveRepo.findByOrder_IdOrder(orderId);
+        approveRepo.deleteAll(oldApproves);
+        
+		Order order = orderRepo.findById(orderId)
+				.orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
+		
+		// Автоматически создаём согласование для ЗНД и ЗНИ 
+		String typeName = order.getOrderType().getName();
+		if ("ЗНД".equals(typeName) || "ЗНИ".equals(typeName)) {
+			ApproveResponseDTO newApprove = createAuto(order);
+			return List.of(newApprove);
+		} else {
+			return Collections.emptyList();
+		}
+	}
 }

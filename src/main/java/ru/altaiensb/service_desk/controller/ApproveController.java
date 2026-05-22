@@ -45,6 +45,11 @@ public class ApproveController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/refresh/{orderId}")
+    public ResponseEntity<List<ApproveResponseDTO>> refreshByOrder(@PathVariable Integer orderId) {
+        return ResponseEntity.ok(service.refreshByOrder(orderId));
+    }
     
     @PostMapping
     public ResponseEntity<ApproveResponseDTO> create(@Valid @RequestBody ApproveCreateRequestDTO dto) {

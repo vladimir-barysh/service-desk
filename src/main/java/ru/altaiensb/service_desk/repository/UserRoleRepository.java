@@ -1,5 +1,7 @@
 package ru.altaiensb.service_desk.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,4 +18,6 @@ public interface UserRoleRepository extends JpaRepository<UserRole, Integer>{
         existsById(id)
         count()
     */
+
+    Optional<UserRole> findByName(String name);
 }
