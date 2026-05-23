@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveCreateRequestDTO;
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveResponseDTO;
@@ -195,10 +197,10 @@ public class ApproveService {
 
         // Создание ApproveUser
         List<ApproveUser> approveUsers = candidates.stream()
-                .map(c -> ApproveUser.builder()
+                .map(var -> ApproveUser.builder()
                         .approve(savedApprove)
-                        .user(c.user())
-                        .userRole(c.role())
+                        .user(var.user())
+                        .userRole(var.role())
                         .state((short) 0)
                         .build())
                 .collect(Collectors.toList());
@@ -228,6 +230,7 @@ public class ApproveService {
         approve.setDatePlan(datePlan);
 
         // Обновляем плановую дату у всех участников этого согласования
+        // TODO: возможно обновлять для всех, кто ещё не согласовал
         List<ApproveUser> approveUsers = approveUserRepo.findByApprove_IdApprove(approveId);
         for (ApproveUser user : approveUsers) {
                 user.setDatePlan(datePlan);
@@ -236,6 +239,75 @@ public class ApproveService {
         
         Approve saved = approveRepo.save(approve);
         return toResponse(saved);
+    }
+
+
+    @Transactional
+    public void updateUsers(Integer approveId, List<Integer> newUserIds) {
+        Approve approve = approveRepo.findById(approveId)
+                .orElseThrow(() -> new ResourceNotFoundException("Approve", approveId));
+        
+        // Текущие участники
+        List<ApproveUser> currentUsers = approveUserRepo.findByApprove_IdApprove(approveId);
+        Set<Integer> currentIds = currentUsers.stream()
+                .map(au -> au.getUser().getIdItUser())
+                .collect(Collectors.toSet());
+        Set<Integer> targetIds = new HashSet<>(newUserIds);
+        
+        // Кого удалить
+        List<ApproveUser> toRemove = currentUsers.stream()
+                .filter(au -> !targetIds.contains(au.getUser().getIdItUser()))
+                .collect(Collectors.toList());
+        approveUserRepo.deleteAll(toRemove);
+        
+        // Кого добавить
+        List<Integer> toAdd = targetIds.stream()
+                .filter(id -> !currentIds.contains(id))
+                .collect(Collectors.toList());
+
+        if (!toRemove.isEmpty() || !toAdd.isEmpty()) {
+            // Переводим согласование в статус "В ожидании" и сбрасываем флаги
+            OrderState waitingState = orderStateRepo.findByName("В ожидании")
+                    .orElseThrow(() -> new ResourceNotFoundException("OrderState", "В ожидании"));
+
+            approve.setApproveState(waitingState);
+            approve.setFlagApproved(false);
+            approve.setDateFact(null);
+
+            approveRepo.save(approve);
+        }
+        
+        // Добавление новых участников
+        if (!toAdd.isEmpty()) {
+            List<User> newUsers = userRepo.findAllById(toAdd);
+            if (newUsers.size() != toAdd.size()) {
+                throw new IllegalArgumentException("Некоторые пользователи не найдены");
+            }
+
+            Integer serviceId = approve.getOrder().getService().getIdService();
+            UserRole defaultRole = userRoleRepo.findByName("Согласующий")
+                    .orElseThrow(() -> new ResourceNotFoundException("UserRole", "Согласующий"));
+            String orderType = approve.getOrder().getOrderType().getName();
+
+            // Создание ApproveUser для новых участников
+            for (User user : newUsers) {
+                UserRole role = defaultRole;
+                if ("ЗНД".equals(orderType)) {
+                    role = catalogItemUserRoleRepo
+                            .findByService_IdServiceAndUser_IdItUser(serviceId, user.getIdItUser())
+                            .map(CatalogItemUserRole::getUserRole)
+                            .orElseThrow(() -> new ResourceNotFoundException("Роль для сервиса " + serviceId + " и пользователя " + user.getIdItUser()));
+                }
+                
+                ApproveUser approveUser = ApproveUser.builder()
+                        .approve(approve)
+                        .user(user)
+                        .userRole(role)
+                        .state((short) 0)
+                        .build();
+                approveUserRepo.save(approveUser);
+            }
+        }
     }
 
     // ---------------------------- DELETE ----------------------------

@@ -3,6 +3,7 @@ package ru.altaiensb.service_desk.controller;
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveCreateRequestDTO;
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveResponseDTO;
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveCandidateResponseDTO;
+import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveUsersUpdateRequestDTO;
 import ru.altaiensb.service_desk.service.ApproveService;
 import lombok.RequiredArgsConstructor;
 
@@ -49,6 +50,12 @@ public class ApproveController {
     @PostMapping("/refresh/{orderId}")
     public ResponseEntity<List<ApproveResponseDTO>> refreshByOrder(@PathVariable Integer orderId) {
         return ResponseEntity.ok(service.refreshByOrder(orderId));
+    }
+
+    @PutMapping("/{id}/users")
+    public ResponseEntity<Void> updateUsers(@PathVariable Integer id, @RequestBody ApproveUsersUpdateRequestDTO dto) {
+        service.updateUsers(id, dto.userIds());
+        return ResponseEntity.noContent().build();
     }
     
     @PostMapping
