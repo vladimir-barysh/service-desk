@@ -241,7 +241,6 @@ public class ApproveService {
         return toResponse(saved);
     }
 
-
     @Transactional
     public void updateUsers(Integer approveId, List<Integer> newUserIds) {
         Approve approve = approveRepo.findById(approveId)
@@ -309,6 +308,45 @@ public class ApproveService {
             }
         }
     }
+
+	// Пересчитываем общий статус согласования
+	@Transactional
+	public void recalculateStatus(Integer approveId) {
+		Approve approve = approveRepo.findById(approveId)
+				.orElseThrow(() -> new ResourceNotFoundException("Approve", approveId));
+		List<ApproveUser> users = approveUserRepo.findByApprove_IdApprove(approveId);
+		
+		boolean allApproved = users.stream().allMatch(u -> u.getState() == 1);
+		boolean anyNotApproved = users.stream().anyMatch(u -> u.getState() == 2);
+		boolean anyRejected = users.stream().anyMatch(u -> u.getState() == 3);
+		
+		if (allApproved) {
+			approve.setFlagApproved(true);
+			approve.setDateFact(Instant.now());
+			OrderState approvedState = orderStateRepo.findByName("Согласовано")
+					.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Согласовано"));
+			approve.setApproveState(approvedState);
+		} else if (anyNotApproved || anyRejected) {
+			approve.setFlagApproved(false);
+			approve.setDateFact(Instant.now());
+			
+			OrderState notApprovedState;
+			if(anyRejected){
+				notApprovedState = orderStateRepo.findByName("Согласование отклонено")
+					.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Согласование отклонено"));
+			}
+			else{
+				notApprovedState = orderStateRepo.findByName("Не согласовано")
+					.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Не согласовано"));
+			}
+
+			approve.setApproveState(notApprovedState);
+		} else {
+			// Если есть ожидающие или не все проголосовали – ничего не меняем
+		}
+
+		approveRepo.save(approve);
+	}
 
     // ---------------------------- DELETE ----------------------------
     @Transactional

@@ -1,12 +1,11 @@
 package ru.altaiensb.service_desk.controller;
 
 import ru.altaiensb.service_desk.service.ApproveUserService;
-import ru.altaiensb.service_desk.dto.ApproveUserDTO.ApproveUserCreateRequestDTO;
+import ru.altaiensb.service_desk.dto.ApproveUserDTO.ApproveUserUpdateRequestDTO;
 import ru.altaiensb.service_desk.dto.ApproveUserDTO.ApproveUserResponseDTO;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,9 +35,10 @@ public class ApproveUserController {
         return ResponseEntity.ok(service.getById(id));
     }
 
-/*     @PostMapping
-    public ResponseEntity<ApproveUserResponseDTO> create(@Valid @RequestBody ApproveUserCreateRequestDTO dto) {
-        ApproveUserResponseDTO created = service.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
-    } */
+    @PatchMapping("/{approveId}/self")
+    public ResponseEntity<ApproveUserResponseDTO> updateSelf(
+            @PathVariable Integer approveId,
+            @RequestBody @Valid ApproveUserUpdateRequestDTO dto) {
+        return ResponseEntity.ok(service.updateSelf(approveId, dto.state(), dto.resultText()));
+    }
 }
