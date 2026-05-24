@@ -48,7 +48,7 @@ public class OrderTask {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_task_state", nullable = false)
-    private TaskState taskState;
+    private OrderState taskState;
 
     @CreationTimestamp
     @Column(name = "date_c", columnDefinition = "timestamptz")

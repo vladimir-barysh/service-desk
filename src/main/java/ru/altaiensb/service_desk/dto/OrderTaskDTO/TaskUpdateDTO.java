@@ -1,4 +1,4 @@
-package ru.altaiensb.service_desk.dto;
+package ru.altaiensb.service_desk.dto.OrderTaskDTO;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -11,7 +11,6 @@ import java.time.Instant;
 @Data
 public class TaskUpdateDTO {
 
-    private JsonNullable<Integer> idOrder = JsonNullable.undefined();
     private JsonNullable<Integer> idOrderTaskParent = JsonNullable.undefined();
     private JsonNullable<Integer> idWork = JsonNullable.undefined();
     private JsonNullable<Integer> idExecutor = JsonNullable.undefined();

@@ -54,6 +54,10 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ["-parameters"]
+}
+
 // Настройка плагина для генерации OpenAPI-спецификации
 openApi {
     apiDocsUrl.set("http://localhost:8081/v3/api-docs")
