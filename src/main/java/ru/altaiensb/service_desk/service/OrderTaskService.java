@@ -147,10 +147,16 @@ public class OrderTaskService {
         dto.getIdExecutor().ifPresent(idExecutor -> {
             if (idExecutor == null) {
                 task.setExecutor(null);
+                Order order = orderRepo.findById(task.getOrder().getIdOrder())
+                        .orElseThrow(() -> new RuntimeException("Order not found"));
+                order.setExecutor(null);
             } else {
                 User executor = userRepo.findById(idExecutor)
                         .orElseThrow(() -> new RuntimeException("User not found with id="));
                 task.setExecutor(executor);
+                Order order = orderRepo.findById(task.getOrder().getIdOrder())
+                        .orElseThrow(() -> new RuntimeException("Order not found"));
+                order.setExecutor(executor);
             }
         });
         dto.getDateFinishPlan().ifPresent(task::setDateFinishPlan);
