@@ -16,6 +16,7 @@ public class TaskUpdateDTO {
     private JsonNullable<Integer> idExecutor = JsonNullable.undefined();
     private JsonNullable<Instant> dateFinishPlan = JsonNullable.undefined();
     private JsonNullable<Instant> dateFinishFact = JsonNullable.undefined();
+    private JsonNullable<Instant> datePostpone = JsonNullable.undefined();
     private JsonNullable<String> description = JsonNullable.undefined();
     private JsonNullable<Boolean> closeParentCheck = JsonNullable.undefined();
     private JsonNullable<Integer> idTaskState = JsonNullable.undefined();

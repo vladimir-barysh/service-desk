@@ -14,6 +14,8 @@ public record TaskResponseDTO(
 
         @Schema(nullable = true) @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC") Instant dateFinishFact,
 
+        @Schema(nullable = true) @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC") Instant datePostpone,
+
         String description,
 
         Boolean closeParentCheck,

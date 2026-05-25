@@ -39,6 +39,7 @@ public class OrderTaskService {
             task.getIdOrderTask(),
             task.getDateFinishPlan(),
             task.getDateFinishFact(),
+            task.getDatePostpone(),
             task.getDescription(),
             task.getCloseParentCheck(),
             task.getDateCreated(),
@@ -160,7 +161,7 @@ public class OrderTaskService {
             }
         });
         dto.getDateFinishPlan().ifPresent(task::setDateFinishPlan);
-        dto.getDateFinishFact().ifPresent(task::setDateFinishFact);
+        dto.getDatePostpone().ifPresent(task::setDatePostpone);
         dto.getDescription().ifPresent(task::setDescription);
         
         dto.getCloseParentCheck().ifPresent(task::setCloseParentCheck);
@@ -169,9 +170,14 @@ public class OrderTaskService {
             if (idTaskState == null) {
                 task.setTaskState(null);
             } else {
-                OrderState state = orderStateRepo.findById(1)
+                OrderState newState = orderStateRepo.findById(idTaskState)
                         .orElseThrow(() -> new RuntimeException("State not found with id="));
-                task.setTaskState(state);
+                OrderState oldState = task.getTaskState();
+                task.setTaskState(newState);
+
+                if (newState.getName().equals("Закрыта") && (oldState == null || !oldState.getName().equals("Закрыта"))){
+                    task.setDateFinishFact(Instant.now());
+                }
             }
         });
 
@@ -189,6 +195,9 @@ public class OrderTaskService {
         // Валидация даты
         if (task.getDateFinishPlan() != null && task.getDateFinishPlan().isBefore(Instant.now())) {
             throw new IllegalArgumentException("Плановая дата не может быть в прошлом");
+        }
+        if (task.getDatePostpone() != null && task.getDatePostpone().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Дата откладывания не может быть в прошлом");
         }
 
         OrderTask updated = taskRepo.save(task);
