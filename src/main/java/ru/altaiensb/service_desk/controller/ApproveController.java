@@ -2,6 +2,8 @@ package ru.altaiensb.service_desk.controller;
 
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveCreateRequestDTO;
 import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveResponseDTO;
+import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveCandidateResponseDTO;
+import ru.altaiensb.service_desk.dto.ApproveDTO.ApproveUsersUpdateRequestDTO;
 import ru.altaiensb.service_desk.service.ApproveService;
 import lombok.RequiredArgsConstructor;
 
@@ -24,14 +26,40 @@ public class ApproveController {
         return ResponseEntity.ok(service.getByOrderId(orderId));
     }
 
+    @GetMapping("/candidate")
+    public ResponseEntity<List<ApproveCandidateResponseDTO>> getApproveCandidate(@RequestParam Integer orderId) {
+        return ResponseEntity.ok(service.getCandidatesForOrder(orderId));
+    }
+
+    @PatchMapping("/{id}/start")
+    public ResponseEntity<ApproveResponseDTO> startProcess(@PathVariable Integer id) {
+        return ResponseEntity.ok(service.startProcess(id));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApproveResponseDTO> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/refresh/{orderId}")
+    public ResponseEntity<List<ApproveResponseDTO>> refreshByOrder(@PathVariable Integer orderId) {
+        return ResponseEntity.ok(service.refreshByOrder(orderId));
+    }
+
+    @PutMapping("/{id}/users")
+    public ResponseEntity<Void> updateUsers(@PathVariable Integer id, @RequestBody ApproveUsersUpdateRequestDTO dto) {
+        service.updateUsers(id, dto.userIds());
+        return ResponseEntity.noContent().build();
+    }
     
     @PostMapping
     public ResponseEntity<ApproveResponseDTO> create(@Valid @RequestBody ApproveCreateRequestDTO dto) {
-        ApproveResponseDTO created = service.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
     }
 }

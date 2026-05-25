@@ -1,8 +1,11 @@
 package ru.altaiensb.service_desk.dto.UserDTO;
 
+import ru.altaiensb.service_desk.annotation.AllFieldsRequired;
+
 import java.time.LocalDate;
 import java.util.Set;
 
+@AllFieldsRequired
 public record UserResponseDTO(
         Integer idItUser,
         String loginAd,

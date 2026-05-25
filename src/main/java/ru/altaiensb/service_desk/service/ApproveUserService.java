@@ -4,49 +4,56 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import ru.altaiensb.service_desk.dto.ApproveUserDTO.ApproveUserCreateRequestDTO;
 import ru.altaiensb.service_desk.dto.ApproveUserDTO.ApproveUserResponseDTO;
 import ru.altaiensb.service_desk.exception.ResourceNotFoundException;
-import ru.altaiensb.service_desk.model.Approve;
 import ru.altaiensb.service_desk.model.ApproveUser;
-import ru.altaiensb.service_desk.model.User;
-import ru.altaiensb.service_desk.model.UserRole;
-import ru.altaiensb.service_desk.repository.ApproveRepository;
+import ru.altaiensb.service_desk.model.OrderState;
 import ru.altaiensb.service_desk.repository.ApproveUserRepository;
-import ru.altaiensb.service_desk.repository.UserRepository;
-import ru.altaiensb.service_desk.repository.UserRoleRepository;
+import ru.altaiensb.service_desk.repository.OrderStateRepository;
 
 @Service
 @RequiredArgsConstructor
 public class ApproveUserService {
-
     private final ApproveUserRepository approveUserRepo;
-    private final ApproveRepository approveRepo;
-    private final UserRepository userRepo;
-    private final UserRoleRepository userRoleRepo;
+	private final ApproveService approveService;
+	private final OrderStateRepository orderStateRepo;
 
-    // Преобразование сущности в DTO
+    // ---------------------------- Respons ----------------------------
     private ApproveUserResponseDTO toResponse(ApproveUser entity) {
         return new ApproveUserResponseDTO(
                 entity.getIdApproveUser(),
                 entity.getApprove() != null ? entity.getApprove().getIdApprove() : null,
                 entity.getUser() != null ? entity.getUser().getIdItUser() : null,
+                entity.getUser() != null ? entity.getUser().getFio1c() : null,
                 entity.getUserRole() != null ? entity.getUserRole().getIdUserRole() : null,
-                entity.getState(),
+                entity.getUserRole() != null ? entity.getUserRole().getName() : null,
+                entity.getApproveUserState() != null ? entity.getApproveUserState().getIdOrderState() : null,
+				entity.getFlagIgnored(),
+                entity.getDatePlan(),
                 entity.getResultText(),
                 entity.getApproveUserParent() != null ? entity.getApproveUserParent().getIdApproveUser() : null,
-                entity.getDatePlan(),
                 entity.getDateFact(),
                 entity.getTaskText()
         );
     }
 
+    // ---------------------------- READ ----------------------------
     @Transactional(readOnly = true)
-    public List<ApproveUserResponseDTO> getAll() {
-        return approveUserRepo.findAll().stream()
+    public List<ApproveUserResponseDTO> getByApproveId(Integer approveId) {
+        List<ApproveUser> approveUser = approveUserRepo.findByApprove_IdApprove(approveId);
+        return approveUser.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ApproveUserResponseDTO> getByOrderId(Integer orderId) {
+        List<ApproveUser> approveUsers = approveUserRepo.findByOrderId(orderId);
+        return approveUsers.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -58,44 +65,39 @@ public class ApproveUserService {
         return toResponse(entity);
     }
 
+    // ---------------------------- UPDATE ----------------------------
     @Transactional
-    public ApproveUserResponseDTO create(ApproveUserCreateRequestDTO dto) {
-        // Обязательные связанные сущности
-        Approve approve = approveRepo.findById(dto.idApprove())
-                .orElseThrow(() -> new ResourceNotFoundException("Approve", dto.idApprove()));
+	public ApproveUserResponseDTO updateSelf(Integer approveId, Integer newState, String resultText) {
+		// TODO: взять согласованта из контекста
+		ApproveUser approveUser = approveUserRepo.findByApprove_IdApproveAndUser_IdItUser(approveId, 1)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                String.format("ApproveUser not found for approveId=%d and userId=%d", approveId, 1)));
 
-        User user = userRepo.findById(dto.idUser())
-                .orElseThrow(() -> new ResourceNotFoundException("User", dto.idUser()));
+		OrderState approveUserState = orderStateRepo.findById(newState)
+			.orElseThrow(() -> new ResourceNotFoundException("OrderState", newState));
 
-        // НЕ обязательные связанные сущности
-        UserRole userRole = null;
-        if (dto.idUserRole() != null) {
-            userRole = userRoleRepo.findById(dto.idUserRole())
-                    .orElseThrow(() -> new ResourceNotFoundException("UserRole", dto.idUserRole()));
-        }
+		// Обновляем данные участника
+		approveUser.setApproveUserState(approveUserState);
+		approveUser.setResultText(resultText);
+		approveUser.setDateFact(Instant.now());
+		ApproveUser saved = approveUserRepo.save(approveUser);
 
-        ApproveUser parent = null;
-        if (dto.idApproveUserParent() != null) {
-            parent = approveUserRepo.findById(dto.idApproveUserParent())
-                    .orElseThrow(() -> new ResourceNotFoundException("ApproveUser parent", dto.idApproveUserParent()));
-        }
+		// Пересчитываем общий статус согласования
+    	approveService.recalculateStatus(approveId);
+		
+		return toResponse(saved);
+	}
 
-        // Определяем state, если не передан, то 0
-        Short state = (dto.state() != null) ? dto.state() : 0;
-
-        // Постройка сущности
-        ApproveUser entity = ApproveUser.builder()
-                .approve(approve)
-                .user(user)
-                .userRole(userRole)
-                .state(state)
-                .approveUserParent(parent)
-                .datePlan(dto.datePlan())
-                .taskText(dto.taskText())
-                .build();
-
-        // Сохранение
-        ApproveUser saved = approveUserRepo.save(entity);
+    @Transactional
+    public ApproveUserResponseDTO updateIgnored(Integer id, Boolean ignored) {
+        ApproveUser approveUser = approveUserRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ApproveUser", id));
+        approveUser.setFlagIgnored(ignored);
+        ApproveUser saved = approveUserRepo.save(approveUser);
+        
+        // Пересчитываем общий статус согласования
+        approveService.recalculateStatus(approveUser.getApprove().getIdApprove());
+        
         return toResponse(saved);
     }
 }

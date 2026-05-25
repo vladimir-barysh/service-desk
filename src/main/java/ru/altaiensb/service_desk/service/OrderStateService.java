@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import ru.altaiensb.service_desk.dto.OrderStateDTO.StateResponseDTO;
+import ru.altaiensb.service_desk.dto.OrderStateDTO.OrderStateResponseDTO;
 import ru.altaiensb.service_desk.exception.ResourceNotFoundException;
 import ru.altaiensb.service_desk.model.OrderState;
 import ru.altaiensb.service_desk.repository.OrderStateRepository;
@@ -15,27 +15,28 @@ import ru.altaiensb.service_desk.repository.OrderStateRepository;
 @Service
 @RequiredArgsConstructor
 public class OrderStateService {
+    private final OrderStateRepository orderStateRepo;
 
-    private final OrderStateRepository repo;
-
-    private StateResponseDTO toResponse(OrderState state) {
-        return new StateResponseDTO(
-            state.getIdOrderState(),
+    // ---------------------------- Respons ----------------------------
+    private OrderStateResponseDTO toResponse(OrderState state) {
+        return new OrderStateResponseDTO(
+            state.getIdOrderState(), 
             state.getName()
         );
     }
 
+    // ---------------------------- READ ----------------------------
     @Transactional(readOnly = true)
-    public List<StateResponseDTO> getAll() {
-        return repo.findAll().stream()
+    public List<OrderStateResponseDTO> getAll() {
+        return orderStateRepo.findAll().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public StateResponseDTO getById(Integer id) {
-        OrderState state = repo.findById(id)
-                            .orElseThrow(() -> new ResourceNotFoundException("State", id));
+    public OrderStateResponseDTO getById(Integer id) {
+        OrderState state = orderStateRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("OrderState", id));
         return toResponse(state);
     }
 }

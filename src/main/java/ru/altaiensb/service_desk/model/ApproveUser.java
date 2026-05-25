@@ -30,10 +30,9 @@ public class ApproveUser {
     @JoinColumn(name = "id_user_role")
     private UserRole userRole;
 
-    @Builder.Default
-    @ColumnDefault("0")
-    @Column(name = "state", nullable = false)
-    private Short state = 0;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_order_state")
+    private OrderState approveUserState;
 
     @Column(name = "result_text")
     private String resultText;
@@ -50,4 +49,9 @@ public class ApproveUser {
 
     @Column(name = "task_text")
     private String taskText;
+
+    @Builder.Default
+    @ColumnDefault("false")
+    @Column(name = "flag_ignored", nullable = false)
+    private Boolean flagIgnored = false;
 }
