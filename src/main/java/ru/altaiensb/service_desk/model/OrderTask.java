@@ -40,6 +40,9 @@ public class OrderTask {
     @Column(name = "date_f_fact", columnDefinition = "timestamptz")
     private Instant dateFinishFact;
 
+    @Column(name = "date_postpone", columnDefinition = "timestamptz")
+    private Instant datePostpone;
+
     @Column(name = "description")
     private String description;
 
@@ -48,10 +51,10 @@ public class OrderTask {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_task_state", nullable = false)
-    private TaskState taskState;
+    private OrderState taskState;
 
     @CreationTimestamp
-    @Column(name = "date_c", columnDefinition = "timestamptz")
+    @Column(name = "date_c", columnDefinition = "timestamptz", nullable = false)
     private Instant dateCreated;
 
     @ManyToOne(fetch = FetchType.LAZY)
