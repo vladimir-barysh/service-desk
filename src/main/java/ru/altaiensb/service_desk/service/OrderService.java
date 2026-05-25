@@ -25,7 +25,6 @@ public class OrderService {
     private final UserRepository userRepo;
     private final OrderPriorityRepository orderPriorityRepo;
     private final OrderTaskRepository orderTaskRepo;
-    private final TaskStateRepository taskStateRepo;
     private final CatalogItemRepository catalogItemRepo;
     private final OrderSourceRepository orderSourceRepo;
 
@@ -227,17 +226,19 @@ public class OrderService {
                 User dispatcher = userRepo.findById(3) // TODO: взять из контекста
                         .orElseThrow(() -> new ResourceNotFoundException("Dispatcher default", 3));
                 order.setDispatcher(dispatcher);
+                order.setExecutor(dispatcher);
             }
             // Создать задачу
             OrderTask task = OrderTask.builder()
                     .order(order)
-                    .executor(order.getExecutor())
+                    .executor(order.getDispatcher())
                     .dateFinishPlan(order.getDateFinishPlan())
                     .description(order.getDescription())
-                    .taskState(taskStateRepo.findById(1)
+                    .taskState(orderStateRepo.findByName("Новая")
                             .orElseThrow(() -> new ResourceNotFoundException("TaskState", 1)))
                     .dateCreated(Instant.now())
-                    .creator(order.getCreator())
+                    // Создатель задачи - диспетчер
+                    .creator(order.getDispatcher())
                     .build();
             orderTaskRepo.save(task);
         }

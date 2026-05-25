@@ -3,24 +3,26 @@ package ru.altaiensb.service_desk.service;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import ru.altaiensb.service_desk.dto.TaskUpdateDTO;
-import ru.altaiensb.service_desk.model.OrderPriority;
 import ru.altaiensb.service_desk.model.OrderState;
 import ru.altaiensb.service_desk.model.OrderTask;
-import ru.altaiensb.service_desk.model.OrderType;
+import ru.altaiensb.service_desk.dto.OrderTaskDTO.TaskCreateRequestDTO;
+import ru.altaiensb.service_desk.dto.OrderTaskDTO.TaskResponseDTO;
+import ru.altaiensb.service_desk.dto.OrderTaskDTO.TaskUpdateDTO;
+import ru.altaiensb.service_desk.exception.ResourceNotFoundException;
 import ru.altaiensb.service_desk.model.Order;
 import ru.altaiensb.service_desk.model.Work;
-import ru.altaiensb.service_desk.model.Serv;
-import ru.altaiensb.service_desk.model.TaskState;
 import ru.altaiensb.service_desk.model.User;
 import ru.altaiensb.service_desk.repository.OrderRepository;
+import ru.altaiensb.service_desk.repository.OrderStateRepository;
 import ru.altaiensb.service_desk.repository.OrderTaskRepository;
 import ru.altaiensb.service_desk.repository.WorkRepository;
 import ru.altaiensb.service_desk.repository.UserRepository;
-import ru.altaiensb.service_desk.repository.TaskStateRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -30,30 +32,101 @@ public class OrderTaskService {
     private final OrderRepository orderRepo;
     private final WorkRepository workRepo;
     private final UserRepository userRepo;
-    private final TaskStateRepository taskStateRepo;
+    private final OrderStateRepository orderStateRepo;
 
-    public List<OrderTask> getAll() {
-        return taskRepo.findAll();
+    private TaskResponseDTO toResponse(OrderTask task) {
+        return new TaskResponseDTO(
+            task.getIdOrderTask(),
+            task.getDateFinishPlan(),
+            task.getDateFinishFact(),
+            task.getDatePostpone(),
+            task.getDescription(),
+            task.getCloseParentCheck(),
+            task.getDateCreated(),
+            task.getResultText(),
+            task.getOrder() != null ? task.getOrder().getIdOrder() : null,
+            task.getOrder() != null ? task.getOrder().getNomer() : null,
+            task.getOrder() != null ? task.getOrder().getName() : null,
+            task.getOrder() != null ? task.getOrder().getOrderType().getIdOrderType() : null,
+            task.getOrder() != null ? task.getOrder().getOrderType().getName() : null,
+            task.getOrder() != null ? task.getOrder().getService().getIdService() : null,
+            task.getOrder() != null ? task.getOrder().getService().getFullname() : null,
+            task.getOrder() != null ? task.getOrder().getCatalogItem().getIdCatitem() : null,
+            task.getOrder() != null ? task.getOrder().getCatalogItem().getName() : null,
+            task.getOrderTaskParent() != null ? task.getOrderTaskParent().getIdOrderTask() : null,
+            task.getWork() != null ? task.getWork().getIdWork() : null,
+            task.getExecutor() != null ? task.getExecutor().getIdItUser() : null,
+            task.getExecutor() != null ? task.getExecutor().getFio1c() : null,
+            task.getTaskState() != null ? task.getTaskState().getIdOrderState() : null,
+            task.getTaskState() != null ? task.getTaskState().getName() : null,
+            task.getCreator() != null ? task.getCreator().getIdItUser() : null,
+            task.getCreator() != null ? task.getCreator().getFio1c() : null
+        );
     }
 
-    public OrderTask getById(Integer id) {
-        return taskRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("OrderTask not found with id=" + id));
+    // ---------------------------- READ ----------------------------
+    @Transactional(readOnly = true)
+    public List<TaskResponseDTO> getAll() {
+        return taskRepo.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public TaskResponseDTO getById(Integer id) {
+        OrderTask task = taskRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Task", id));
+        return toResponse(task);
     }
     
-    public OrderTask update(Integer id, TaskUpdateDTO dto) {
-        OrderTask task = taskRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found with id=" + id));
+    // ---------------------------- CREATE ----------------------------
+    @Transactional
+    public TaskResponseDTO create(TaskCreateRequestDTO dto) {
+        Order order = orderRepo.findById(dto.idOrder())
+                .orElseThrow(() -> new ResourceNotFoundException("Order", dto.idOrder()));
+        User creator = userRepo.findById(1)
+                .orElseThrow(() -> new ResourceNotFoundException("Creator", 1));
+        OrderState defaultState = orderStateRepo.findByName("Новая")
+                .orElseThrow(() -> new ResourceNotFoundException("OrderState", "Новая"));
+        OrderTask parentTask = new OrderTask();
+        if (dto.idOrderTaskParent() != null){
+            parentTask = taskRepo.findById(dto.idOrderTaskParent())
+                .orElseThrow(() -> new ResourceNotFoundException("TaskParent", dto.idOrderTaskParent()));
+        }
+        // TODO: Разобраться с работой. Убрать проверку на работу. Сейчас с фронта не идет никакой idWork
+        Work work = new Work();
+        if (dto.idWork() != null){
+            work = workRepo.findById(dto.idWork())
+                .orElseThrow(() -> new ResourceNotFoundException("Work", dto.idWork()));
+        }
+        User executor = userRepo.findById(dto.idExecutor())
+                .orElseThrow(() -> new ResourceNotFoundException("Executor", dto.idExecutor()));
+        
+        OrderTask task = OrderTask.builder()
+                .order(order)
+                .orderTaskParent(dto.idOrderTaskParent() != null ? parentTask : null)
+                .work(dto.idWork() != null ? work : null)
+                .executor(executor)
+                .dateFinishPlan(dto.dateFinishPlan())
+                .dateFinishFact(null)
+                .description(dto.description())
+                .closeParentCheck(dto.closeParentCheck())
+                .taskState(defaultState)
+                .dateCreated(Instant.now())
+                .creator(creator)
+                .resultText("")
+                .build();
 
-        dto.getIdOrder().ifPresent(idOrder -> {
-            if (idOrder == null) {
-                task.setOrder(null);
-            } else {
-                Order order = orderRepo.findById(idOrder)
-                        .orElseThrow(() -> new RuntimeException("Order not found"));
-                task.setOrder(order);
-            }
-        });
+        OrderTask saved = taskRepo.save(task);
+
+        return toResponse(saved);
+    }
+    // ---------------------------- UPDATE ----------------------------
+    @Transactional
+    public TaskResponseDTO update(Integer id, TaskUpdateDTO dto) {
+        OrderTask task = taskRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Task", id));
+
         dto.getIdOrderTaskParent().ifPresent(idOrderTaskParent -> {
             if (idOrderTaskParent == null) {
                 task.setOrderTaskParent(null);
@@ -75,14 +148,20 @@ public class OrderTaskService {
         dto.getIdExecutor().ifPresent(idExecutor -> {
             if (idExecutor == null) {
                 task.setExecutor(null);
+                Order order = orderRepo.findById(task.getOrder().getIdOrder())
+                        .orElseThrow(() -> new RuntimeException("Order not found"));
+                order.setExecutor(null);
             } else {
                 User executor = userRepo.findById(idExecutor)
                         .orElseThrow(() -> new RuntimeException("User not found with id="));
                 task.setExecutor(executor);
+                Order order = orderRepo.findById(task.getOrder().getIdOrder())
+                        .orElseThrow(() -> new RuntimeException("Order not found"));
+                order.setExecutor(executor);
             }
         });
         dto.getDateFinishPlan().ifPresent(task::setDateFinishPlan);
-        dto.getDateFinishFact().ifPresent(task::setDateFinishFact);
+        dto.getDatePostpone().ifPresent(task::setDatePostpone);
         dto.getDescription().ifPresent(task::setDescription);
         
         dto.getCloseParentCheck().ifPresent(task::setCloseParentCheck);
@@ -91,9 +170,14 @@ public class OrderTaskService {
             if (idTaskState == null) {
                 task.setTaskState(null);
             } else {
-                TaskState state = taskStateRepo.findById(1)
+                OrderState newState = orderStateRepo.findById(idTaskState)
                         .orElseThrow(() -> new RuntimeException("State not found with id="));
-                task.setTaskState(state);
+                OrderState oldState = task.getTaskState();
+                task.setTaskState(newState);
+
+                if (newState.getName().equals("Закрыта") && (oldState == null || !oldState.getName().equals("Закрыта"))){
+                    task.setDateFinishFact(Instant.now());
+                }
             }
         });
 
@@ -108,7 +192,16 @@ public class OrderTaskService {
         });
         dto.getResultText().ifPresent(task::setResultText);
 
-        return taskRepo.save(task);
+        // Валидация даты
+        if (task.getDateFinishPlan() != null && task.getDateFinishPlan().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Плановая дата не может быть в прошлом");
+        }
+        if (task.getDatePostpone() != null && task.getDatePostpone().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Дата откладывания не может быть в прошлом");
+        }
+
+        OrderTask updated = taskRepo.save(task);
+        return toResponse(updated);
     }
 
 }

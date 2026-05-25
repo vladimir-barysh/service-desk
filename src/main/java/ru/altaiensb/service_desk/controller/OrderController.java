@@ -28,7 +28,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")  
-    public ResponseEntity<OrderResponseDTO> getById(@PathVariable Integer id) {
+    public ResponseEntity<OrderResponseDTO> getById(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
 
@@ -50,7 +50,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<OrderResponseDTO> updateStatus(@PathVariable Integer id, @RequestBody OrderStatusUpdateDTO statusDto) {
+    public ResponseEntity<OrderResponseDTO> updateStatus(@PathVariable("id") Integer id, @RequestBody OrderStatusUpdateDTO statusDto) {
         return ResponseEntity.ok(service.updateStatus(id, statusDto.getIdOrderState()));
     }
 }
