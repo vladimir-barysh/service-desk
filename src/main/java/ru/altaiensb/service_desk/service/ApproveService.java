@@ -214,33 +214,50 @@ public class ApproveService {
     public ApproveResponseDTO startProcess(Integer approveId) {
         Approve approve = approveRepo.findById(approveId)
                 .orElseThrow(() -> new ResourceNotFoundException("Approve", approveId));
-        
-        // Проверка, не запущено ли ещё это согласование
-        if (approve.getApproveState().getIdOrderState() == 7) {
-                throw new IllegalStateException("Согласование уже запущено");
-        }
-        
-        // Меняем статус на "На согласовании" (id = 7)
-        OrderState inProgressState = orderStateRepo.findById(7)
-                .orElseThrow(() -> new ResourceNotFoundException("OrderState", 7));
-        approve.setApproveState(inProgressState);
-        
-        // Устанавливаем плановую дату через 24 рабочих часа
-        Instant datePlan = WorkingHoursUtil.addWorkHours(Instant.now(), 24);
-        approve.setDatePlan(datePlan);
 
-        // Обновляем плановую дату у всех участников этого согласования
-        // TODO: возможно обновлять для всех, кто ещё не согласовал
-        List<ApproveUser> approveUsers = approveUserRepo.findByApprove_IdApprove(approveId);
-        for (ApproveUser user : approveUsers) {
-                user.setDatePlan(datePlan);
-				user.setApproveUserState(inProgressState);
-        }
-        approveUserRepo.saveAll(approveUsers);
+		// Загружаем нужные статусы из БД
+		OrderState inProgressState = orderStateRepo.findByName("На согласовании")
+				.orElseThrow(() -> new ResourceNotFoundException("OrderState", "На согласовании"));
+		OrderState approvedState = orderStateRepo.findByName("Согласовано")
+				.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Согласовано"));
+
+		// Проверяем, что согласование ещё не запущено
+		if (approve.getApproveState().getIdOrderState().equals(inProgressState.getIdOrderState())) {
+			throw new IllegalStateException("Согласование уже запущено");
+		}
         
-        Approve saved = approveRepo.save(approve);
-        return toResponse(saved);
-    }
+        // Переводим согласование в статус "На согласовании"
+		approve.setApproveState(inProgressState);
+		approve.setFlagApproved(false);
+		approve.setDateFact(null);
+		Instant datePlan = WorkingHoursUtil.addWorkHours(Instant.now(), 24);
+		approve.setDatePlan(datePlan);
+
+        // Обновляем участников
+		List<ApproveUser> approveUsers = approveUserRepo.findByApprove_IdApprove(approveId);
+		for (ApproveUser user : approveUsers) {
+			// Уже согласовавших не трогаем
+			if (user.getApproveUserState() != null 
+					&& user.getApproveUserState().getIdOrderState().equals(approvedState.getIdOrderState())) {
+				continue;
+			}
+
+			// Если диспетчер пометил участника как игнорируемого – не меняем его статус (его решение игнорируется)
+			if (Boolean.TRUE.equals(user.getFlagIgnored())) {
+				continue;
+			}
+
+			// Остальных переводим в "На согласовании" (включая тех, кто был "Не согласовано" или "В ожидании")
+			user.setApproveUserState(inProgressState);
+			user.setDatePlan(datePlan);
+			user.setDateFact(null);
+			user.setResultText(null);
+		}
+		approveUserRepo.saveAll(approveUsers);
+
+		Approve saved = approveRepo.save(approve);
+		return toResponse(saved);
+	}
 
     @Transactional
     public void updateUsers(Integer approveId, List<Integer> newUserIds) {
@@ -258,7 +275,6 @@ public class ApproveService {
         List<ApproveUser> toRemove = currentUsers.stream()
                 .filter(au -> !targetIds.contains(au.getUser().getIdItUser()))
                 .collect(Collectors.toList());
-        approveUserRepo.deleteAll(toRemove);
         
         // Кого добавить
         List<Integer> toAdd = targetIds.stream()
@@ -268,14 +284,35 @@ public class ApproveService {
 		OrderState waitingState = orderStateRepo.findByName("В ожидании")
 			.orElseThrow(() -> new ResourceNotFoundException("OrderState", "В ожидании"));
 
-        if (!toRemove.isEmpty() || !toAdd.isEmpty()) {
-            // Переводим согласование в статус "В ожидании" и сбрасываем флаги
-            approve.setApproveState(waitingState);
-            approve.setFlagApproved(false);
-            approve.setDateFact(null);
-
-            approveRepo.save(approve);
+		// Переводим в статус "В ожидании" и сбрасываем флаги
+/*         if (!toRemove.isEmpty() || !toAdd.isEmpty()) { */
+        approve.setApproveState(waitingState);
+        approve.setFlagApproved(false);
+        approve.setDateFact(null);
+        approveRepo.save(approve);
+        
+        OrderState inProgressState = orderStateRepo.findByName("На согласовании")
+            .orElseThrow(() -> new ResourceNotFoundException("OrderState", "На согласовании"));
+            
+        // Сбрасываем статус всех оставшихся участников со статусом "На согласовании"
+        List<ApproveUser> remainingUsers = currentUsers.stream()
+                .filter(au -> !toRemove.contains(au))
+                .collect(Collectors.toList());
+        for (ApproveUser au : remainingUsers) {
+            if (au.getApproveUserState() != null 
+                    && au.getApproveUserState().getIdOrderState().equals(inProgressState.getIdOrderState())) {
+                au.setApproveUserState(waitingState);
+                au.setDateFact(null);
+                au.setResultText(null);
+                au.setDatePlan(null);
+            }
         }
+/*         } */
+
+		// Удаление
+		if (!toRemove.isEmpty()) {
+			approveUserRepo.deleteAll(toRemove);
+		}
         
         // Добавление новых участников
         if (!toAdd.isEmpty()) {
@@ -314,42 +351,43 @@ public class ApproveService {
 	@Transactional
 	public void recalculateStatus(Integer approveId) {
 		Approve approve = approveRepo.findById(approveId)
-				.orElseThrow(() -> new ResourceNotFoundException("Approve", approveId));
-		List<ApproveUser> users = approveUserRepo.findByApprove_IdApprove(approveId);
-		
-		List<ApproveUser> activeUsers = users.stream()
-			.filter(u -> !Boolean.TRUE.equals(u.getFlagIgnored()))
-			.filter(u -> u.getApproveUserState() != null)
-			.collect(Collectors.toList());
+						.orElseThrow(() -> new ResourceNotFoundException("Approve", approveId));
 
-		boolean allApproved = activeUsers.stream().allMatch(u -> u.getApproveUserState().getIdOrderState() == 13);
-		boolean anyNotApproved = activeUsers.stream().anyMatch(u -> u.getApproveUserState().getIdOrderState() == 9);
-		boolean anyRejected = activeUsers.stream().anyMatch(u -> u.getApproveUserState().getIdOrderState() == 14);
+		List<ApproveUser> users = approveUserRepo.findByApprove_IdApprove(approveId);
+		List<ApproveUser> activeUsers = users.stream()
+				.filter(u -> !Boolean.TRUE.equals(u.getFlagIgnored()))
+				.filter(u -> u.getApproveUserState() != null)
+				.collect(Collectors.toList());
+
+		// Загружаем статусы по имени
+		OrderState approvedState = orderStateRepo.findByName("Согласовано")
+				.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Согласовано"));
+		OrderState notApprovedState = orderStateRepo.findByName("Не согласовано")
+				.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Не согласовано"));
+		OrderState rejectedState = orderStateRepo.findByName("Согласование отклонено")
+				.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Согласование отклонено"));
+
+		boolean allApproved = activeUsers.stream()
+				.allMatch(u -> u.getApproveUserState().getIdOrderState().equals(approvedState.getIdOrderState()));
+    	boolean anyNotApproved = activeUsers.stream()
+				.anyMatch(u -> u.getApproveUserState().getIdOrderState().equals(notApprovedState.getIdOrderState()));
+    	boolean anyRejected = activeUsers.stream()
+				.anyMatch(u -> u.getApproveUserState().getIdOrderState().equals(rejectedState.getIdOrderState()));
 		
 		if (allApproved) {
 			approve.setFlagApproved(true);
 			approve.setDateFact(Instant.now());
-			OrderState approvedState = orderStateRepo.findByName("Согласовано")
-					.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Согласовано"));
 			approve.setApproveState(approvedState);
-		} else if (anyNotApproved || anyRejected) {
+		} else if (anyRejected) {
 			approve.setFlagApproved(false);
 			approve.setDateFact(Instant.now());
-			
-			OrderState notApprovedState;
-			if(anyRejected){
-				notApprovedState = orderStateRepo.findByName("Согласование отклонено")
-					.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Согласование отклонено"));
-			}
-			else{
-				notApprovedState = orderStateRepo.findByName("Не согласовано")
-					.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Не согласовано"));
-			}
-
+			approve.setApproveState(rejectedState);
+		} else if (anyNotApproved) {
+			approve.setFlagApproved(false);
+			approve.setDateFact(Instant.now());
 			approve.setApproveState(notApprovedState);
-		} else {
-			// Если есть ожидающие или не все проголосовали – ничего не меняем
 		}
+		// else – статус не меняем
 
 		approveRepo.save(approve);
 	}

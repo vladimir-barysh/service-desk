@@ -3,7 +3,7 @@ package ru.altaiensb.service_desk.controller;
 import ru.altaiensb.service_desk.service.ApproveUserService;
 import ru.altaiensb.service_desk.dto.ApproveUserDTO.ApproveUserUpdateRequestDTO;
 import ru.altaiensb.service_desk.dto.ApproveUserDTO.ApproveUserResponseDTO;
-
+import ru.altaiensb.service_desk.dto.ApproveUserDTO.ApproveUserUpdateIgnoredRequestDTO;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
@@ -30,15 +30,22 @@ public class ApproveUserController {
         return ResponseEntity.ok(service.getByOrderId(orderId));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApproveUserResponseDTO> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok(service.getById(id));
-    }
-
     @PatchMapping("/{approveId}/self")
     public ResponseEntity<ApproveUserResponseDTO> updateSelf(
             @PathVariable Integer approveId,
             @RequestBody @Valid ApproveUserUpdateRequestDTO dto) {
         return ResponseEntity.ok(service.updateSelf(approveId, dto.idApproveUserState(), dto.resultText()));
+    }
+
+    @PatchMapping("/{id}/ignore")
+    public ResponseEntity<ApproveUserResponseDTO> updateIgnored(
+            @PathVariable Integer id,
+            @RequestBody @Valid ApproveUserUpdateIgnoredRequestDTO dto) {
+        return ResponseEntity.ok(service.updateIgnored(id, dto.ignored()));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApproveUserResponseDTO> getById(@PathVariable Integer id) {
+        return ResponseEntity.ok(service.getById(id));
     }
 }

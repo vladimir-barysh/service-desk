@@ -87,4 +87,17 @@ public class ApproveUserService {
 		
 		return toResponse(saved);
 	}
+
+    @Transactional
+    public ApproveUserResponseDTO updateIgnored(Integer id, Boolean ignored) {
+        ApproveUser approveUser = approveUserRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ApproveUser", id));
+        approveUser.setFlagIgnored(ignored);
+        ApproveUser saved = approveUserRepo.save(approveUser);
+        
+        // Пересчитываем общий статус согласования
+        approveService.recalculateStatus(approveUser.getApprove().getIdApprove());
+        
+        return toResponse(saved);
+    }
 }
