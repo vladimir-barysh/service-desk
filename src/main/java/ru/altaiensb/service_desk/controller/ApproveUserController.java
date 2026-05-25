@@ -39,6 +39,6 @@ public class ApproveUserController {
     public ResponseEntity<ApproveUserResponseDTO> updateSelf(
             @PathVariable Integer approveId,
             @RequestBody @Valid ApproveUserUpdateRequestDTO dto) {
-        return ResponseEntity.ok(service.updateSelf(approveId, dto.state(), dto.resultText()));
+        return ResponseEntity.ok(service.updateSelf(approveId, dto.idApproveUserState(), dto.resultText()));
     }
 }

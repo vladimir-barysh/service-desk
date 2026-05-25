@@ -201,7 +201,7 @@ public class ApproveService {
                         .approve(savedApprove)
                         .user(var.user())
                         .userRole(var.role())
-                        .state((short) 0)
+                        .approveUserState(defaultState)
                         .build())
                 .collect(Collectors.toList());
         approveUserRepo.saveAll(approveUsers);
@@ -234,6 +234,7 @@ public class ApproveService {
         List<ApproveUser> approveUsers = approveUserRepo.findByApprove_IdApprove(approveId);
         for (ApproveUser user : approveUsers) {
                 user.setDatePlan(datePlan);
+				user.setApproveUserState(inProgressState);
         }
         approveUserRepo.saveAll(approveUsers);
         
@@ -264,11 +265,11 @@ public class ApproveService {
                 .filter(id -> !currentIds.contains(id))
                 .collect(Collectors.toList());
 
+		OrderState waitingState = orderStateRepo.findByName("В ожидании")
+			.orElseThrow(() -> new ResourceNotFoundException("OrderState", "В ожидании"));
+
         if (!toRemove.isEmpty() || !toAdd.isEmpty()) {
             // Переводим согласование в статус "В ожидании" и сбрасываем флаги
-            OrderState waitingState = orderStateRepo.findByName("В ожидании")
-                    .orElseThrow(() -> new ResourceNotFoundException("OrderState", "В ожидании"));
-
             approve.setApproveState(waitingState);
             approve.setFlagApproved(false);
             approve.setDateFact(null);
@@ -302,7 +303,7 @@ public class ApproveService {
                         .approve(approve)
                         .user(user)
                         .userRole(role)
-                        .state((short) 0)
+                        .approveUserState(waitingState)
                         .build();
                 approveUserRepo.save(approveUser);
             }
@@ -316,9 +317,14 @@ public class ApproveService {
 				.orElseThrow(() -> new ResourceNotFoundException("Approve", approveId));
 		List<ApproveUser> users = approveUserRepo.findByApprove_IdApprove(approveId);
 		
-		boolean allApproved = users.stream().allMatch(u -> u.getState() == 1);
-		boolean anyNotApproved = users.stream().anyMatch(u -> u.getState() == 2);
-		boolean anyRejected = users.stream().anyMatch(u -> u.getState() == 3);
+		List<ApproveUser> activeUsers = users.stream()
+			.filter(u -> !Boolean.TRUE.equals(u.getFlagIgnored()))
+			.filter(u -> u.getApproveUserState() != null)
+			.collect(Collectors.toList());
+
+		boolean allApproved = activeUsers.stream().allMatch(u -> u.getApproveUserState().getIdOrderState() == 13);
+		boolean anyNotApproved = activeUsers.stream().anyMatch(u -> u.getApproveUserState().getIdOrderState() == 9);
+		boolean anyRejected = activeUsers.stream().anyMatch(u -> u.getApproveUserState().getIdOrderState() == 14);
 		
 		if (allApproved) {
 			approve.setFlagApproved(true);

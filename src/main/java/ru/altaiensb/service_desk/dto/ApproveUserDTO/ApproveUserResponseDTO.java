@@ -14,7 +14,8 @@ public record ApproveUserResponseDTO(
     String userFio,
     Integer userRoleId,
     String userRoleName,
-    Short   state,
+    Integer idApproveUserState,
+    Boolean flagIgnored,
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC") 
     Instant datePlan,
