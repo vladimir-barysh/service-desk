@@ -1,6 +1,6 @@
 package ru.altaiensb.service_desk.controller;
 
-import ru.altaiensb.service_desk.model.OrderType;
+import ru.altaiensb.service_desk.dto.OrderTypeDTO.OrderTypeResponseDTO;
 import ru.altaiensb.service_desk.service.OrderTypeService;
 
 import lombok.RequiredArgsConstructor;
@@ -17,12 +17,12 @@ public class OrderTypeController {
     private final OrderTypeService service;
 
     @GetMapping
-    public List<OrderType> getAll() {
+    public List<OrderTypeResponseDTO> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderType> getById(@PathVariable Integer id) {
+    public ResponseEntity<OrderTypeResponseDTO> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
 }

@@ -1,6 +1,6 @@
 package ru.altaiensb.service_desk.controller;
 
-import ru.altaiensb.service_desk.model.OrderPriority;
+import ru.altaiensb.service_desk.dto.OrderPriorityDTO.OrderPriorityResponseDTO;
 import ru.altaiensb.service_desk.service.OrderPriorityService;
 
 import lombok.RequiredArgsConstructor;
@@ -17,12 +17,12 @@ public class OrderPriorityController {
     private final OrderPriorityService service;
 
     @GetMapping
-    public List<OrderPriority> getAll() {
+    public List<OrderPriorityResponseDTO> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderPriority> getById(@PathVariable Integer id) {
+    public ResponseEntity<OrderPriorityResponseDTO> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
 }

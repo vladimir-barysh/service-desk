@@ -2,9 +2,13 @@ package ru.altaiensb.service_desk.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import ru.altaiensb.service_desk.dto.OrderTypeDTO.OrderTypeResponseDTO;
+import ru.altaiensb.service_desk.exception.ResourceNotFoundException;
 import ru.altaiensb.service_desk.model.OrderType;
 import ru.altaiensb.service_desk.repository.OrderTypeRepository;
 
@@ -14,12 +18,25 @@ public class OrderTypeService {
 
     private final OrderTypeRepository repo;
 
-    public List<OrderType> getAll() {
-        return repo.findAll();
+    private OrderTypeResponseDTO toResponse(OrderType type) {
+        return new OrderTypeResponseDTO(
+            type.getIdOrderType(), 
+            type.getName(),
+            type.getAvailable()
+        );
+    };
+
+    @Transactional(readOnly = true)
+    public List<OrderTypeResponseDTO> getAll() {
+        return repo.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
-    public OrderType getById(Integer id) {
-        return repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("OrderType not found with id=" + id));
+    @Transactional(readOnly = true)
+    public OrderTypeResponseDTO getById(Integer id) {
+        OrderType type = repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("OrderType", id));
+        return toResponse(type);
     }
 }

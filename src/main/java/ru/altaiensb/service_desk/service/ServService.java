@@ -13,7 +13,7 @@ import ru.altaiensb.service_desk.repository.ServRepository;
 @Service
 @RequiredArgsConstructor
 public class ServService {
-    private final ServRepository ServRepo;
+    private final ServRepository repo;
 
     // ---------------------------- Respons ----------------------------
     private ServResponseDTO toResponse(Serv serv) {
@@ -26,28 +26,30 @@ public class ServService {
             serv.getDateS(),
             serv.getDateF(),
             serv.getPriznakIs(),
-            serv.getServiceType() != null ? serv.getServiceType().getIdServiceType() : null,
-            serv.getServiceState() != null ? serv.getServiceState().getIdServiceState() : null,
-            serv.getExpType() != null ? serv.getExpType().getIdExpType() : null,
-            serv.getServiceParent() != null ? serv.getServiceParent().getIdService() : null,
             serv.getIsNeedApproval(),
             serv.getIsService(),
             serv.getBusinessCritical(),
-            serv.getBasisS()
+            serv.getBasisS(),
+            serv.getServiceType() != null ? serv.getServiceType().getIdServiceType() : null,
+            serv.getServiceType() != null ? serv.getServiceType().getFullname() : null,
+            serv.getServiceState() != null ? serv.getServiceState().getIdServiceState() : null,
+            serv.getServiceState() != null ? serv.getServiceState().getName() : null,
+            serv.getExpType() != null ? serv.getExpType().getIdExpType() : null,
+            serv.getServiceParent() != null ? serv.getServiceParent().getIdService() : null
         );
     }
 
     // ---------------------------- READ ----------------------------
     @Transactional(readOnly = true)
     public List<ServResponseDTO> getAll() {
-        return ServRepo.findAll().stream()
+        return repo.findAll().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public ServResponseDTO getById(Integer id) {
-        Serv serv = ServRepo.findById(id)
+        Serv serv = repo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Serv", id));
         return toResponse(serv);
     }

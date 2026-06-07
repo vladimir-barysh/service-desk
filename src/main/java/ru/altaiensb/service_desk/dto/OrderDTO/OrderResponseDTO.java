@@ -37,7 +37,7 @@ public record OrderResponseDTO(
     @Schema(nullable = true)
     String resultText,
 
-    // Связные талицы с частью используемых данных
+    // Связные таблицы с частью используемых данных
     @Schema(nullable = true) Integer orderParentId,
     Integer initiatorId,
     Integer creatorId,
