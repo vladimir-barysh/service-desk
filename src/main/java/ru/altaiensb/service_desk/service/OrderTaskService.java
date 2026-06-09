@@ -78,6 +78,13 @@ public class OrderTaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Task", id));
         return toResponse(task);
     }
+
+    @Transactional(readOnly = true)
+    public List<TaskResponseDTO> getByExecutorId(Integer executorId) {
+        return taskRepo.findByExecutor_IdItUser(executorId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
     
     // ---------------------------- CREATE ----------------------------
     @Transactional
