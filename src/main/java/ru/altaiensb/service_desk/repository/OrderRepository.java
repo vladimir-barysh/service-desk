@@ -4,6 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import ru.altaiensb.service_desk.model.Order;
+import java.util.List;
+
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer>{
@@ -16,4 +18,5 @@ public interface OrderRepository extends JpaRepository<Order, Integer>{
         existsById(id)
         count()
     */
+    List<Order> findByInitiator_IdItUser(Integer idItUser);
 }

@@ -49,7 +49,9 @@ public class OrderService {
             order.getResultText(),
             order.getOrderParent() != null ? order.getOrderParent().getIdOrder() : null,
             order.getInitiator() != null ? order.getInitiator().getIdItUser() : null,
+            order.getInitiator() != null ? order.getInitiator().getFio1c() : null,
             order.getCreator() != null ? order.getCreator().getIdItUser() : null,
+            order.getCreator() != null ? order.getCreator().getFio1c() : null,
             order.getDispatcher() != null ? order.getDispatcher().getIdItUser() : null,
             order.getDispatcher() != null ? order.getDispatcher().getFio1c() : null,
             order.getExecutor() != null ? order.getExecutor().getIdItUser() : null,
@@ -82,6 +84,13 @@ public class OrderService {
         Order order = orderRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", id));
         return toResponse(order);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponseDTO> getByInitiatorId(Integer id) {
+        return orderRepo.findByInitiator_IdItUser(id).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
 
     // ---------------------------- CREATE ----------------------------

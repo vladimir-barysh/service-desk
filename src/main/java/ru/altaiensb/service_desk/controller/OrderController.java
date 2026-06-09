@@ -32,6 +32,11 @@ public class OrderController {
         return ResponseEntity.ok(service.getById(id));
     }
 
+    @GetMapping("/by-initiator")
+    public ResponseEntity<List<OrderResponseDTO>> getByInitiatorId( @RequestParam Integer initiatorId) {
+        return ResponseEntity.ok(service.getByInitiatorId(initiatorId));
+    }
+
     @PostMapping
     public ResponseEntity<OrderResponseDTO> create(@Valid @RequestBody OrderCreateRequestDTO dto) {
         OrderResponseDTO created = service.create(dto);

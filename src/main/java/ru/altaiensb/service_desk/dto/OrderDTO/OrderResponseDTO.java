@@ -40,7 +40,9 @@ public record OrderResponseDTO(
     // Связные таблицы с частью используемых данных
     @Schema(nullable = true) Integer orderParentId,
     Integer initiatorId,
+    String initiatorFio,
     Integer creatorId,
+    String creatorFio,
     @Schema(nullable = true) Integer dispatcherId,  
     @Schema(nullable = true) String dispatcherFio,
     @Schema(nullable = true) Integer executorId, 
