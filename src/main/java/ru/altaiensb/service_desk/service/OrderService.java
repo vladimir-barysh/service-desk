@@ -242,8 +242,8 @@ public class OrderService {
         if (newState.getName().equals("В работе") && (oldState == null || !oldState.getName().equals("В работе"))) {
             // Назначить диспетчера, если не задан
             if (order.getDispatcher() == null) {
-                User dispatcher = userRepo.findById(3) // TODO: взять из контекста
-                        .orElseThrow(() -> new ResourceNotFoundException("Dispatcher default", 3));
+                User dispatcher = userRepo.findById(1) // TODO: взять из контекста
+                        .orElseThrow(() -> new ResourceNotFoundException("Dispatcher default", 1));
                 order.setDispatcher(dispatcher);
                 order.setExecutor(dispatcher);
             }
