@@ -35,6 +35,7 @@ public class OrderTaskService {
     private final OrderStateRepository orderStateRepo;
 
     private static final String CLOSED_STATE = "Закрыта";
+    private static final String POSTPONE_STATE = "В ожидании";
 
     private TaskResponseDTO toResponse(OrderTask task) {
         return new TaskResponseDTO(
@@ -179,15 +180,7 @@ public class OrderTaskService {
             task.setDateFinishPlan(date);
         }
 
-        if (!dto.getDatePostpone().isUndefined()) {
-
-            Instant date = dto.getDatePostpone().orElse(null);
-
-            if (date != null && date.isBefore(Instant.now())) {
-                throw new IllegalArgumentException("Дата откладывания не может быть в прошлом");
-            }
-            task.setDatePostpone(date);
-        }
+        
 
         dto.getDescription().ifPresent(task::setDescription);
 
@@ -206,7 +199,8 @@ public class OrderTaskService {
 
                 OrderState newState = orderStateRepo.findById(stateId)
                         .orElseThrow(() -> new RuntimeException("State not found with id="));
-
+                
+                // Работа с закрытием задачи
                 if (newState.getName().equals(CLOSED_STATE)
                         && (oldState == null || !oldState.getName().equals(CLOSED_STATE))) {
 
@@ -228,6 +222,25 @@ public class OrderTaskService {
                     if (task.getCloseParentCheck() != null && task.getCloseParentCheck() == true) {
                         autoCloseParentTasks(task, newState);
                     }
+                }
+                // Аннулируем желаемый срок, если откладываем задачу
+                else if(newState.getName().equals(POSTPONE_STATE))  {
+                    
+                    if (!dto.getDatePostpone().isUndefined()) {
+
+                        Instant date = dto.getDatePostpone().orElse(null);
+
+                        if (date != null && date.isBefore(Instant.now())) {
+                            throw new IllegalArgumentException("Дата откладывания не может быть в прошлом");
+                        }
+                        task.setDatePostpone(date);
+                    }
+
+                    task.setDateFinishPlan(null);
+
+                    Order order = orderRepo.findById(task.getOrder().getIdOrder())
+                                        .orElseThrow(() -> new RuntimeException("Order not found with id="));
+                    order.setDateFinishPlan(null);
                 }
                 else {
                     task.setTaskState(newState);
