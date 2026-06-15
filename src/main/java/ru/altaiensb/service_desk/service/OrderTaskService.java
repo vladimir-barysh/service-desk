@@ -34,34 +34,35 @@ public class OrderTaskService {
     private final UserRepository userRepo;
     private final OrderStateRepository orderStateRepo;
 
+    private static final String CLOSED_STATE = "Закрыта";
+
     private TaskResponseDTO toResponse(OrderTask task) {
         return new TaskResponseDTO(
-            task.getIdOrderTask(),
-            task.getDateFinishPlan(),
-            task.getDateFinishFact(),
-            task.getDatePostpone(),
-            task.getDescription(),
-            task.getCloseParentCheck(),
-            task.getDateCreated(),
-            task.getResultText(),
-            task.getOrder() != null ? task.getOrder().getIdOrder() : null,
-            task.getOrder() != null ? task.getOrder().getNomer() : null,
-            task.getOrder() != null ? task.getOrder().getName() : null,
-            task.getOrder() != null ? task.getOrder().getOrderType().getIdOrderType() : null,
-            task.getOrder() != null ? task.getOrder().getOrderType().getName() : null,
-            task.getOrder() != null ? task.getOrder().getService().getIdService() : null,
-            task.getOrder() != null ? task.getOrder().getService().getFullname() : null,
-            task.getOrder() != null ? task.getOrder().getCatalogItem().getIdCatitem() : null,
-            task.getOrder() != null ? task.getOrder().getCatalogItem().getName() : null,
-            task.getOrderTaskParent() != null ? task.getOrderTaskParent().getIdOrderTask() : null,
-            task.getWork() != null ? task.getWork().getIdWork() : null,
-            task.getExecutor() != null ? task.getExecutor().getIdItUser() : null,
-            task.getExecutor() != null ? task.getExecutor().getFio1c() : null,
-            task.getTaskState() != null ? task.getTaskState().getIdOrderState() : null,
-            task.getTaskState() != null ? task.getTaskState().getName() : null,
-            task.getCreator() != null ? task.getCreator().getIdItUser() : null,
-            task.getCreator() != null ? task.getCreator().getFio1c() : null
-        );
+                task.getIdOrderTask(),
+                task.getDateFinishPlan(),
+                task.getDateFinishFact(),
+                task.getDatePostpone(),
+                task.getDescription(),
+                task.getCloseParentCheck(),
+                task.getDateCreated(),
+                task.getResultText(),
+                task.getOrder() != null ? task.getOrder().getIdOrder() : null,
+                task.getOrder() != null ? task.getOrder().getNomer() : null,
+                task.getOrder() != null ? task.getOrder().getName() : null,
+                task.getOrder() != null ? task.getOrder().getOrderType().getIdOrderType() : null,
+                task.getOrder() != null ? task.getOrder().getOrderType().getName() : null,
+                task.getOrder() != null ? task.getOrder().getService().getIdService() : null,
+                task.getOrder() != null ? task.getOrder().getService().getFullname() : null,
+                task.getOrder() != null ? task.getOrder().getCatalogItem().getIdCatitem() : null,
+                task.getOrder() != null ? task.getOrder().getCatalogItem().getName() : null,
+                task.getOrderTaskParent() != null ? task.getOrderTaskParent().getIdOrderTask() : null,
+                task.getWork() != null ? task.getWork().getIdWork() : null,
+                task.getExecutor() != null ? task.getExecutor().getIdItUser() : null,
+                task.getExecutor() != null ? task.getExecutor().getFio1c() : null,
+                task.getTaskState() != null ? task.getTaskState().getIdOrderState() : null,
+                task.getTaskState() != null ? task.getTaskState().getName() : null,
+                task.getCreator() != null ? task.getCreator().getIdItUser() : null,
+                task.getCreator() != null ? task.getCreator().getFio1c() : null);
     }
 
     // ---------------------------- READ ----------------------------
@@ -85,7 +86,7 @@ public class OrderTaskService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
-    
+
     // ---------------------------- CREATE ----------------------------
     @Transactional
     public TaskResponseDTO create(TaskCreateRequestDTO dto) {
@@ -96,19 +97,20 @@ public class OrderTaskService {
         OrderState defaultState = orderStateRepo.findByName("Новая")
                 .orElseThrow(() -> new ResourceNotFoundException("OrderState", "Новая"));
         OrderTask parentTask = new OrderTask();
-        if (dto.idOrderTaskParent() != null){
+        if (dto.idOrderTaskParent() != null) {
             parentTask = taskRepo.findById(dto.idOrderTaskParent())
-                .orElseThrow(() -> new ResourceNotFoundException("TaskParent", dto.idOrderTaskParent()));
+                    .orElseThrow(() -> new ResourceNotFoundException("TaskParent", dto.idOrderTaskParent()));
         }
-        // TODO: Разобраться с работой. Убрать проверку на работу. Сейчас с фронта не идет никакой idWork
+        // TODO: Разобраться с работой. Убрать проверку на работу. Сейчас с фронта не
+        // идет никакой idWork
         Work work = new Work();
-        if (dto.idWork() != null){
+        if (dto.idWork() != null) {
             work = workRepo.findById(dto.idWork())
-                .orElseThrow(() -> new ResourceNotFoundException("Work", dto.idWork()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Work", dto.idWork()));
         }
         User executor = userRepo.findById(dto.idExecutor())
                 .orElseThrow(() -> new ResourceNotFoundException("Executor", dto.idExecutor()));
-        
+
         OrderTask task = OrderTask.builder()
                 .order(order)
                 .orderTaskParent(dto.idOrderTaskParent() != null ? parentTask : null)
@@ -128,6 +130,7 @@ public class OrderTaskService {
 
         return toResponse(saved);
     }
+
     // ---------------------------- UPDATE ----------------------------
     @Transactional
     public TaskResponseDTO update(Integer id, TaskUpdateDTO dto) {
@@ -167,26 +170,70 @@ public class OrderTaskService {
                 order.setExecutor(executor);
             }
         });
-        dto.getDateFinishPlan().ifPresent(task::setDateFinishPlan);
-        dto.getDatePostpone().ifPresent(task::setDatePostpone);
+
+        if (!dto.getDateFinishPlan().isUndefined()) {
+            Instant date = dto.getDateFinishPlan().orElse(null);
+            if (date != null && date.isBefore(Instant.now())) {
+                throw new IllegalArgumentException("Желаемая дата не может быть в прошлом");
+            }
+            task.setDateFinishPlan(date);
+        }
+
+        if (!dto.getDatePostpone().isUndefined()) {
+
+            Instant date = dto.getDatePostpone().orElse(null);
+
+            if (date != null && date.isBefore(Instant.now())) {
+                throw new IllegalArgumentException("Дата откладывания не может быть в прошлом");
+            }
+            task.setDatePostpone(date);
+        }
+
         dto.getDescription().ifPresent(task::setDescription);
-        
+
         dto.getCloseParentCheck().ifPresent(task::setCloseParentCheck);
 
-        dto.getIdTaskState().ifPresent(idTaskState -> {
-            if (idTaskState == null) {
+        dto.getResultText().ifPresent(task::setResultText);
+
+        if (!dto.getIdTaskState().isUndefined()) {
+
+            Integer stateId = dto.getIdTaskState().orElse(null);
+
+            if (stateId == null) {
                 task.setTaskState(null);
             } else {
-                OrderState newState = orderStateRepo.findById(idTaskState)
-                        .orElseThrow(() -> new RuntimeException("State not found with id="));
                 OrderState oldState = task.getTaskState();
-                task.setTaskState(newState);
 
-                if (newState.getName().equals("Закрыта") && (oldState == null || !oldState.getName().equals("Закрыта"))){
-                    task.setDateFinishFact(Instant.now());
+                OrderState newState = orderStateRepo.findById(stateId)
+                        .orElseThrow(() -> new RuntimeException("State not found with id="));
+
+                if (newState.getName().equals(CLOSED_STATE)
+                        && (oldState == null || !oldState.getName().equals(CLOSED_STATE))) {
+
+                    List<OrderTask> children = taskRepo.findByOrderTaskParent_IdOrderTask(task.getIdOrderTask());
+
+                    boolean allChildrenClosed = children.stream()
+                            .allMatch(child -> child.getTaskState() != null
+                                    && child.getTaskState().getName().equals(CLOSED_STATE));
+
+                    if (allChildrenClosed) {
+                        task.setTaskState(newState);
+                        task.setDateFinishFact(Instant.now());
+                        task.setResultText(dto.getResultText().orElse(CLOSED_STATE) + "\n" + buildChildrenResult(task));
+                    }
+                    else {
+                        throw new IllegalArgumentException("Сначала завершите все дочерние задачи");
+                    }
+                    
+                    if (task.getCloseParentCheck() != null && task.getCloseParentCheck() == true) {
+                        autoCloseParentTasks(task, newState);
+                    }
+                }
+                else {
+                    task.setTaskState(newState);
                 }
             }
-        });
+        }
 
         dto.getIdCreator().ifPresent(idCreator -> {
             if (idCreator == null) {
@@ -197,18 +244,54 @@ public class OrderTaskService {
                 task.setCreator(creator);
             }
         });
-        dto.getResultText().ifPresent(task::setResultText);
-
-        // Валидация даты
-        if (task.getDateFinishPlan() != null && task.getDateFinishPlan().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Плановая дата не может быть в прошлом");
-        }
-        if (task.getDatePostpone() != null && task.getDatePostpone().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Дата откладывания не может быть в прошлом");
-        }
+        
 
         OrderTask updated = taskRepo.save(task);
         return toResponse(updated);
+    }
+
+    private void autoCloseParentTasks(OrderTask task, OrderState closeState) {
+        
+        if (task.getOrderTaskParent() == null) {
+            return;
+        }
+        
+        OrderTask parentTask = taskRepo.findById(task.getOrderTaskParent().getIdOrderTask())
+                .orElseThrow(() -> new RuntimeException("Parent Task not found"));
+        // if (все дочерние задачи закрыты, закрывать нынешнюю)
+        List<OrderTask> children = taskRepo.findByOrderTaskParent_IdOrderTask(parentTask.getIdOrderTask());
+        
+        boolean allChildrenClosed = children.stream()
+                .allMatch(child ->
+                            child.getTaskState() != null
+                            && child.getTaskState().getName().equals(CLOSED_STATE)   
+                );
+
+        if (!allChildrenClosed) {
+            return;
+        }
+        parentTask.setTaskState(closeState);
+        parentTask.setDateFinishFact(Instant.now());
+
+        parentTask.setResultText(buildChildrenResult(parentTask));
+
+        if (parentTask.getCloseParentCheck() != null && parentTask.getCloseParentCheck() == true) {
+            autoCloseParentTasks(parentTask, closeState);
+        }
+
+    }
+
+    private String buildChildrenResult(OrderTask parentTask) {
+        List<OrderTask> children = taskRepo.findByOrderTaskParent_IdOrderTask(parentTask.getIdOrderTask());
+
+        return children.stream()
+                .filter(child -> child.getResultText() != null)
+                .filter(child -> !child.getResultText().isBlank())
+                .map(child -> String.format(
+                        "Задача #%d:\n%s",
+                        child.getIdOrderTask(),
+                        child.getResultText()))
+                .collect(Collectors.joining("\n\n"));
     }
 
 }

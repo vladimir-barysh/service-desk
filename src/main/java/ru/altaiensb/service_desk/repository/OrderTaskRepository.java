@@ -19,4 +19,6 @@ public interface OrderTaskRepository extends JpaRepository<OrderTask, Integer>{
         count()
     */
    List<OrderTask> findByExecutor_IdItUser(Integer idItUser);
+   
+   List<OrderTask> findByOrderTaskParent_IdOrderTask(Integer parentId);
 }
