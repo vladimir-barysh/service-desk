@@ -32,6 +32,11 @@ public class OrderTaskController {
         return ResponseEntity.ok(service.getById(id));
     }
 
+    @GetMapping("/to-executor")
+    public ResponseEntity<List<TaskResponseDTO>> getByExecutorId( @RequestParam Integer executorId) {
+        return ResponseEntity.ok(service.getByExecutorId(executorId));
+    }
+
     @PostMapping
     public ResponseEntity<TaskResponseDTO> create(@Valid @RequestBody TaskCreateRequestDTO dto) {
         TaskResponseDTO created = service.create(dto);
