@@ -17,10 +17,6 @@ public record OrderCreateRequestDTO(
     @Positive(message = "ID сервиса должен быть положительным")
     Integer idService,
 
-    @NotNull(message = "ID услуги обязателен")
-    @Positive(message = "ID услуги каталога должен быть положительным")
-    Integer idCatItem,
-
     @NotNull(message = "ID инициатора обязателен")
     @Positive(message = "ID инициатора должен быть положительным")
     Integer idInitiator,

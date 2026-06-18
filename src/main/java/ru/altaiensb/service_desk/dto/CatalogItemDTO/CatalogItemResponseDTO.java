@@ -12,7 +12,6 @@ public record CatalogItemResponseDTO(
         LocalDate expDate,
         String expOutBasis,
         LocalDate expOutDate,
-        Integer serviceId,
         Integer parentId,
         Integer expTypeId,
         Integer effectId,

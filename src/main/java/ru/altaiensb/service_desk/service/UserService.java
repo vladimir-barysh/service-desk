@@ -36,6 +36,7 @@ public class UserService {
                 user.getTelAd(),
                 user.getFio1c(),
                 user.getPodr() != null ? user.getPodr().getIdPodr() : null,
+                user.getPodr() != null ? user.getPodr().getName() : null,
                 user.getDolzh1c(),
                 user.getTabNum1c(),
                 user.getDateCreate(),

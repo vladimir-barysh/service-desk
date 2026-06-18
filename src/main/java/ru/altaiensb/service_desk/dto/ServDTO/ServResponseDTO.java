@@ -19,6 +19,8 @@ public record ServResponseDTO(
         Boolean isService,
         Short businessCritical,
         @Schema(nullable = true) String basisS,
+        Integer catitemId,
+        String catitemName,
         Integer serviceTypeId,
         String serviceTypeName,
         @Schema(nullable = true) Integer serviceStateId,

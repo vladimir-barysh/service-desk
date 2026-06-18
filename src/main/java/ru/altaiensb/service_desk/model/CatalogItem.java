@@ -1,8 +1,7 @@
 package ru.altaiensb.service_desk.model;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,9 +17,6 @@ public class CatalogItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_catitem")
     private Integer idCatitem;
-
-    @Column(name = "id_service")
-    private Integer idService;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_catitem_parent")
@@ -66,13 +62,7 @@ public class CatalogItem {
     @JoinColumn(name = "id_catitem_state")
     private CatitemState catitemState;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "it_service_catitem",
-        schema = "sd_core",
-        joinColumns = @JoinColumn(name = "id_catitem"),
-        inverseJoinColumns = @JoinColumn(name = "id_service")
-    )
-    @Builder.Default
-    private Set<Serv> services = new HashSet<>();
+    // Для работы "сверху-вниз"
+    @OneToMany(mappedBy = "catalogItem")
+    private List<Serv> services;
 }

@@ -13,6 +13,7 @@ public record UserResponseDTO(
         String telAd,
         String fio1c,
         Integer podrId,                // идентификатор подразделения
+        String podrName,
         String dolzh1c,
         String tabNum1c,
         LocalDate dateCreate,

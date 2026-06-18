@@ -21,7 +21,8 @@ import ru.altaiensb.service_desk.repository.*;
 @Service
 @RequiredArgsConstructor
 public class OrderService {
-    @PersistenceContext private EntityManager entityManager;
+    @PersistenceContext
+    private EntityManager entityManager;
     private final OrderRepository orderRepo;
     private final ServRepository servRepo;
     private final OrderTypeRepository orderTypeRepo;
@@ -29,46 +30,49 @@ public class OrderService {
     private final UserRepository userRepo;
     private final OrderPriorityRepository orderPriorityRepo;
     private final OrderTaskRepository orderTaskRepo;
-    private final CatalogItemRepository catalogItemRepo;
     private final OrderSourceRepository orderSourceRepo;
     private final ApproveService approveService;
 
-    // ---------------------------- Respons ----------------------------
+    private static final String CLOSED = "Закрыта";
+    private static final String PENDING = "В ожидании";
+    private static final String PENDING_CONFIRMATION = "На подтверждении";
+    private static final String REJECTED = "Отклонена";
+
+    // ---------------------------- Response ----------------------------
     private OrderResponseDTO toResponse(Order order) {
         return new OrderResponseDTO(
-            order.getIdOrder(),
-            order.getNomer(),
-            order.getName(),
-            order.getDescription(),
-            order.getDateCreated(),
-            order.getDateFinishPlan(),
-            order.getDateFinishFact(),
-            order.getDatePostpone(),
-            order.getDateTechReturn(),
-            order.getComment(),
-            order.getResultText(),
-            order.getOrderParent() != null ? order.getOrderParent().getIdOrder() : null,
-            order.getInitiator() != null ? order.getInitiator().getIdItUser() : null,
-            order.getInitiator() != null ? order.getInitiator().getFio1c() : null,
-            order.getCreator() != null ? order.getCreator().getIdItUser() : null,
-            order.getCreator() != null ? order.getCreator().getFio1c() : null,
-            order.getDispatcher() != null ? order.getDispatcher().getIdItUser() : null,
-            order.getDispatcher() != null ? order.getDispatcher().getFio1c() : null,
-            order.getExecutor() != null ? order.getExecutor().getIdItUser() : null,
-            order.getExecutor() != null ? order.getExecutor().getFio1c() : null,
-            order.getOrderType() != null ? order.getOrderType().getIdOrderType() : null,
-            order.getOrderType() != null ? order.getOrderType().getName() : null,
-            order.getCatalogItem() != null ? order.getCatalogItem().getIdCatitem() : null,
-            order.getCatalogItem() != null ? order.getCatalogItem().getName() : null,
-            order.getService() != null ? order.getService().getIdService() : null,
-            order.getService() != null ? order.getService().getFullname() : null,
-            order.getOrderState() != null ? order.getOrderState().getIdOrderState() : null,
-            order.getOrderState() != null ? order.getOrderState().getName() : null,
-            order.getOrderPriority() != null ? order.getOrderPriority().getIdOrderPriority() : null,
-            order.getOrderPriority() != null ? order.getOrderPriority().getName() : null,
-            order.getOrderSource() != null ? order.getOrderSource().getIdOrderSource() : null,
-            order.getOrderSource() != null ? order.getOrderSource().getName() : null
-        );
+                order.getIdOrder(),
+                order.getNomer(),
+                order.getName(),
+                order.getDescription(),
+                order.getDateCreated(),
+                order.getDateFinishPlan(),
+                order.getDateFinishFact(),
+                order.getDatePostpone(),
+                order.getDateTechReturn(),
+                order.getComment(),
+                order.getResultText(),
+                order.getOrderParent() != null ? order.getOrderParent().getIdOrder() : null,
+                order.getInitiator() != null ? order.getInitiator().getIdItUser() : null,
+                order.getInitiator() != null ? order.getInitiator().getFio1c() : null,
+                order.getCreator() != null ? order.getCreator().getIdItUser() : null,
+                order.getCreator() != null ? order.getCreator().getFio1c() : null,
+                order.getDispatcher() != null ? order.getDispatcher().getIdItUser() : null,
+                order.getDispatcher() != null ? order.getDispatcher().getFio1c() : null,
+                order.getExecutor() != null ? order.getExecutor().getIdItUser() : null,
+                order.getExecutor() != null ? order.getExecutor().getFio1c() : null,
+                order.getOrderType() != null ? order.getOrderType().getIdOrderType() : null,
+                order.getOrderType() != null ? order.getOrderType().getName() : null,
+                order.getCatalogItem() != null ? order.getCatalogItem().getIdCatitem() : null,
+                order.getCatalogItem() != null ? order.getCatalogItem().getName() : null,
+                order.getService() != null ? order.getService().getIdService() : null,
+                order.getService() != null ? order.getService().getFullname() : null,
+                order.getOrderState() != null ? order.getOrderState().getIdOrderState() : null,
+                order.getOrderState() != null ? order.getOrderState().getName() : null,
+                order.getOrderPriority() != null ? order.getOrderPriority().getIdOrderPriority() : null,
+                order.getOrderPriority() != null ? order.getOrderPriority().getName() : null,
+                order.getOrderSource() != null ? order.getOrderSource().getIdOrderSource() : null,
+                order.getOrderSource() != null ? order.getOrderSource().getName() : null);
     }
 
     // ---------------------------- READ ----------------------------
@@ -95,7 +99,7 @@ public class OrderService {
 
     // ---------------------------- CREATE ----------------------------
     @Transactional
-    public OrderResponseDTO create(OrderCreateRequestDTO dto){
+    public OrderResponseDTO create(OrderCreateRequestDTO dto) {
 
         // Загрузка обязательных связей из DTO
         User initiator = userRepo.findById(dto.idInitiator())
@@ -104,8 +108,7 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("OrderType", dto.idOrderType()));
         Serv service = servRepo.findById(dto.idService())
                 .orElseThrow(() -> new ResourceNotFoundException("Service", dto.idService()));
-        CatalogItem catalogItem = catalogItemRepo.findById(dto.idCatItem())
-                .orElseThrow(() -> new ResourceNotFoundException("CatalogItem", dto.idCatItem()));
+        CatalogItem catalogItem = service.getCatalogItem();
 
         // TODO: взять создателя заявки из контекста
         User creator = userRepo.findById(1)
@@ -126,15 +129,15 @@ public class OrderService {
         // Валидация в зависимости от типа
         String typeName = orderType.getName();
         switch (typeName) {
-        case "ЗНТ" -> {
+            case "ЗНТ" -> {
                 if (dto.dateTechReturn() == null) {
-                throw new IllegalArgumentException("Для заявки типа ЗНТ обязательно указать дату возврата техники");
+                    throw new IllegalArgumentException("Для заявки типа ЗНТ обязательно указать дату возврата техники");
                 }
-        }
-        case "ЗНО", "ЗНИ", "ЗНД" -> {
-        // специфические проверки при необходимости
-        }
-        default -> throw new IllegalArgumentException("Неизвестный тип заявки: " + typeName);
+            }
+            case "ЗНО", "ЗНИ", "ЗНД" -> {
+                // специфические проверки при необходимости
+            }
+            default -> throw new IllegalArgumentException("Неизвестный тип заявки: " + typeName);
         }
 
         // Построение сущности
@@ -144,7 +147,7 @@ public class OrderService {
                 .dateCreated(Instant.now())
                 .dateFinishPlan("ЗНД".equals(typeName) ? null : dto.dateFinishPlan())
                 .datePostpone(null)
-                .dateTechReturn("ЗНТ".equals(typeName) ? dto.dateTechReturn() : null) 
+                .dateTechReturn("ЗНТ".equals(typeName) ? dto.dateTechReturn() : null)
                 .comment(dto.comment())
                 .creator(creator)
                 .initiator(initiator)
@@ -172,7 +175,7 @@ public class OrderService {
 
     // ---------------------------- UPDATE ----------------------------
     @Transactional
-        public OrderResponseDTO update(Integer id, OrderUpdateDTO dto) {
+    public OrderResponseDTO update(Integer id, OrderUpdateDTO dto) {
         Order order = orderRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", id));
 
@@ -182,11 +185,24 @@ public class OrderService {
         dto.getDateFinishFact().ifPresent(order::setDateFinishFact);
         dto.getDatePostpone().ifPresent(order::setDatePostpone);
         dto.getComment().ifPresent(order::setComment);
+        dto.getResultText().ifPresent(order::setResultText);
 
         // Обработка ссылок с возможным null
         setReference(dto.getIdOrderParent(), orderRepo, order::setOrderParent);
         setReference(dto.getIdOrderType(), orderTypeRepo, order::setOrderType);
-        setReference(dto.getIdService(), servRepo, order::setService);
+        dto.getIdService().ifPresent(idService -> {
+            if (idService == null) {
+                order.setService(null);
+            } else {
+                Serv service = servRepo.findById(idService)
+                                .orElseThrow(() -> new RuntimeException("Service not found"));
+                order.setService(service);
+
+                CatalogItem catalogItem = service.getCatalogItem();
+
+                order.setCatalogItem(catalogItem);
+            }
+        });
         setReference(dto.getIdOrderPriority(), orderPriorityRepo, order::setOrderPriority);
         setReference(dto.getIdOrderState(), orderStateRepo, order::setOrderState);
         setReference(dto.getIdCreator(), userRepo, order::setCreator);
@@ -195,6 +211,9 @@ public class OrderService {
         setReference(dto.getIdExecutor(), userRepo, order::setExecutor);
         setReference(dto.getIdOrderSource(), orderSourceRepo, order::setOrderSource);
 
+        if (order.getOrderState().getName().equals(CLOSED) || order.getOrderState().getName().equals(REJECTED)) {
+            order.setDateFinishFact(Instant.now());
+        }
         // Валидация даты
         if (order.getDateFinishPlan() != null && order.getDateFinishPlan().isBefore(Instant.now())) {
             throw new IllegalArgumentException("Плановая дата не может быть в прошлом");
@@ -205,8 +224,8 @@ public class OrderService {
     }
 
     private <T> void setReference(org.openapitools.jackson.nullable.JsonNullable<Integer> nullableId,
-                                  org.springframework.data.jpa.repository.JpaRepository<T, Integer> repo,
-                                  java.util.function.Consumer<T> setter) {
+            org.springframework.data.jpa.repository.JpaRepository<T, Integer> repo,
+            java.util.function.Consumer<T> setter) {
         nullableId.ifPresent(id -> {
             if (id == null) {
                 setter.accept(null);
@@ -237,17 +256,19 @@ public class OrderService {
 
         OrderState oldState = order.getOrderState();
         order.setOrderState(newState);
-
-        // Логика при переходе в "В работе"
+        
+        // Перевод заявки в статус "В работе"
         if (newState.getName().equals("В работе") && (oldState == null || !oldState.getName().equals("В работе"))) {
             // Назначить диспетчера, если не задан
             if (order.getDispatcher() == null) {
-                User dispatcher = userRepo.findById(1) // TODO: взять из контекста
+                // TODO: взять из контекста
+                User dispatcher = userRepo.findById(1) 
                         .orElseThrow(() -> new ResourceNotFoundException("Dispatcher default", 1));
                 order.setDispatcher(dispatcher);
                 order.setExecutor(dispatcher);
             }
             // Создать задачу
+            // TODO: синхронизировать с согласованием. 
             OrderTask task = OrderTask.builder()
                     .order(order)
                     .executor(order.getDispatcher())
@@ -260,9 +281,15 @@ public class OrderService {
                     .creator(order.getDispatcher())
                     .build();
             orderTaskRepo.save(task);
+        } 
+        // Подтверждение заявки
+        else if (newState.getName().equals(CLOSED)
+                && (oldState != null && oldState.getName().equals(PENDING_CONFIRMATION))) {
+            order.setDateFinishFact(Instant.now());
+            String oldResult = order.getResultText();
+            order.setResultText( oldResult + "\nЗаявка закрыта инициатором");
         }
-
-        // При отклонении – заполнить дату факта
+        // Отклонение – заполнить дату факта
         if (newState.getName().equals("Отклонена") && order.getDateFinishFact() == null) {
             order.setDateFinishFact(Instant.now());
         }

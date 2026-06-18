@@ -29,7 +29,6 @@ public class CatalogItemService {
             item.getExpDate(),
             item.getExpOutBasis(),
             item.getExpOutDate(),
-            item.getIdService(),
             item.getCatitemParent() != null ? item.getCatitemParent().getIdCatitem() : null,
             item.getExpType() != null ? item.getExpType().getIdExpType() : null,
             item.getEffect() != null ? item.getEffect().getIdEffect() : null,

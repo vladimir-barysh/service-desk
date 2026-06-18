@@ -1,9 +1,6 @@
 package ru.altaiensb.service_desk.model;
 import java.time.LocalDate;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.hibernate.annotations.ColumnDefault;
 import jakarta.persistence.*;
 import lombok.*;
@@ -42,6 +39,10 @@ public class Serv {
     private Boolean priznakIs;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_catitem", nullable = false)
+    private CatalogItem catalogItem;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_service_type", nullable = false)
     private ServiceType serviceType;
 
@@ -74,7 +75,4 @@ public class Serv {
     @Column(name = "basis_s")
     private String basisS;
 
-    @ManyToMany(mappedBy = "services", fetch = FetchType.LAZY)
-    @Builder.Default
-    private Set<CatalogItem> catalogItems = new HashSet<>();
 }

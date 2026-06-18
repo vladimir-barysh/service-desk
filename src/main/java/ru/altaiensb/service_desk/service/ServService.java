@@ -30,6 +30,8 @@ public class ServService {
             serv.getIsService(),
             serv.getBusinessCritical(),
             serv.getBasisS(),
+            serv.getCatalogItem() != null ? serv.getCatalogItem().getIdCatitem() : null,
+            serv.getCatalogItem() != null ? serv.getCatalogItem().getName() : null,
             serv.getServiceType() != null ? serv.getServiceType().getIdServiceType() : null,
             serv.getServiceType() != null ? serv.getServiceType().getFullname() : null,
             serv.getServiceState() != null ? serv.getServiceState().getIdServiceState() : null,

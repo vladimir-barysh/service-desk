@@ -34,8 +34,9 @@ public class OrderTaskService {
     private final UserRepository userRepo;
     private final OrderStateRepository orderStateRepo;
 
-    private static final String CLOSED_STATE = "Закрыта";
-    private static final String POSTPONE_STATE = "В ожидании";
+    private static final String CLOSED = "Закрыта";
+    private static final String PENDING = "В ожидании";
+    private static final String PENDING_CONFIRMATION = "На подтверждении";
 
     private TaskResponseDTO toResponse(OrderTask task) {
         return new TaskResponseDTO(
@@ -180,8 +181,6 @@ public class OrderTaskService {
             task.setDateFinishPlan(date);
         }
 
-        
-
         dto.getDescription().ifPresent(task::setDescription);
 
         dto.getCloseParentCheck().ifPresent(task::setCloseParentCheck);
@@ -199,33 +198,46 @@ public class OrderTaskService {
 
                 OrderState newState = orderStateRepo.findById(stateId)
                         .orElseThrow(() -> new RuntimeException("State not found with id="));
-                
+
                 // Работа с закрытием задачи
-                if (newState.getName().equals(CLOSED_STATE)
-                        && (oldState == null || !oldState.getName().equals(CLOSED_STATE))) {
+                if (newState.getName().equals(CLOSED)
+                        && (oldState == null || !oldState.getName().equals(CLOSED))) {
 
                     List<OrderTask> children = taskRepo.findByOrderTaskParent_IdOrderTask(task.getIdOrderTask());
 
                     boolean allChildrenClosed = children.stream()
                             .allMatch(child -> child.getTaskState() != null
-                                    && child.getTaskState().getName().equals(CLOSED_STATE));
+                                    && child.getTaskState().getName().equals(CLOSED));
 
                     if (allChildrenClosed) {
                         task.setTaskState(newState);
                         task.setDateFinishFact(Instant.now());
-                        task.setResultText(dto.getResultText().orElse(CLOSED_STATE) + "\n" + buildChildrenResult(task));
-                    }
-                    else {
+                        task.setResultText(dto.getResultText().orElse(CLOSED) + "\n" + buildChildrenResult(task));
+
+                        // Если закрыли все задачи, то присваиваем заявке статус "На подтверждении"
+                        if (task.getOrderTaskParent() == null) {
+                            Order order = orderRepo.findById(task.getOrder().getIdOrder())
+                                    .orElseThrow(() -> new RuntimeException("Order not found with id="));
+
+                            OrderState confirmState = orderStateRepo.findByName(PENDING_CONFIRMATION)
+                                    .orElseThrow(
+                                            () -> new ResourceNotFoundException("OrderState", PENDING_CONFIRMATION));
+
+                            order.setOrderState(confirmState);
+                            order.setResultText(task.getResultText());
+                        }
+
+                    } else {
                         throw new IllegalArgumentException("Сначала завершите все дочерние задачи");
                     }
-                    
+
                     if (task.getCloseParentCheck() != null && task.getCloseParentCheck() == true) {
                         autoCloseParentTasks(task, newState);
                     }
                 }
                 // Аннулируем желаемый срок, если откладываем задачу
-                else if(newState.getName().equals(POSTPONE_STATE))  {
-                    
+                else if (newState.getName().equals(PENDING)) {
+
                     if (!dto.getDatePostpone().isUndefined()) {
 
                         Instant date = dto.getDatePostpone().orElse(null);
@@ -239,10 +251,9 @@ public class OrderTaskService {
                     task.setDateFinishPlan(null);
 
                     Order order = orderRepo.findById(task.getOrder().getIdOrder())
-                                        .orElseThrow(() -> new RuntimeException("Order not found with id="));
+                            .orElseThrow(() -> new RuntimeException("Order not found with id="));
                     order.setDateFinishPlan(null);
-                }
-                else {
+                } else {
                     task.setTaskState(newState);
                 }
             }
@@ -257,28 +268,25 @@ public class OrderTaskService {
                 task.setCreator(creator);
             }
         });
-        
 
         OrderTask updated = taskRepo.save(task);
         return toResponse(updated);
     }
 
     private void autoCloseParentTasks(OrderTask task, OrderState closeState) {
-        
+
         if (task.getOrderTaskParent() == null) {
             return;
         }
-        
+
         OrderTask parentTask = taskRepo.findById(task.getOrderTaskParent().getIdOrderTask())
                 .orElseThrow(() -> new RuntimeException("Parent Task not found"));
-        // if (все дочерние задачи закрыты, закрывать нынешнюю)
+
         List<OrderTask> children = taskRepo.findByOrderTaskParent_IdOrderTask(parentTask.getIdOrderTask());
-        
+
         boolean allChildrenClosed = children.stream()
-                .allMatch(child ->
-                            child.getTaskState() != null
-                            && child.getTaskState().getName().equals(CLOSED_STATE)   
-                );
+                .allMatch(child -> child.getTaskState() != null
+                        && child.getTaskState().getName().equals(CLOSED));
 
         if (!allChildrenClosed) {
             return;
@@ -290,6 +298,17 @@ public class OrderTaskService {
 
         if (parentTask.getCloseParentCheck() != null && parentTask.getCloseParentCheck() == true) {
             autoCloseParentTasks(parentTask, closeState);
+        }
+        // Если закрыли все задачи, то присваиваем заявке статус "На подтверждении"
+        else if (parentTask.getOrderTaskParent() == null) {
+            Order order = orderRepo.findById(parentTask.getOrder().getIdOrder())
+                    .orElseThrow(() -> new RuntimeException("Order not found with id="));
+
+            OrderState newState = orderStateRepo.findByName(PENDING_CONFIRMATION)
+                    .orElseThrow(() -> new ResourceNotFoundException("OrderState", PENDING_CONFIRMATION));
+
+            order.setOrderState(newState);
+            order.setResultText(task.getResultText());
         }
 
     }
