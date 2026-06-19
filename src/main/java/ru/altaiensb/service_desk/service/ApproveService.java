@@ -26,6 +26,7 @@ import ru.altaiensb.service_desk.model.Order;
 import ru.altaiensb.service_desk.model.User;
 import ru.altaiensb.service_desk.model.UserRole;
 import ru.altaiensb.service_desk.model.OrderState;
+import ru.altaiensb.service_desk.model.OrderTask;
 import ru.altaiensb.service_desk.repository.ApproveRepository;
 import ru.altaiensb.service_desk.repository.ApproveUserRepository;
 import ru.altaiensb.service_desk.repository.CatalogItemUserRoleRepository;
@@ -34,6 +35,7 @@ import ru.altaiensb.service_desk.repository.UserRepository;
 import ru.altaiensb.service_desk.repository.UserRoleRepository;
 import ru.altaiensb.service_desk.util.WorkingHoursUtil;
 import ru.altaiensb.service_desk.repository.OrderStateRepository;
+import ru.altaiensb.service_desk.repository.OrderTaskRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -42,10 +44,15 @@ public class ApproveService {
     private final ApproveRepository approveRepo;
     private final OrderRepository orderRepo;
     private final UserRepository userRepo;
+    private final OrderTaskRepository taskRepo;
     private final OrderStateRepository orderStateRepo;
     private final CatalogItemUserRoleRepository catalogItemUserRoleRepo;
     private final ApproveUserRepository approveUserRepo;
     private final UserRoleRepository userRoleRepo;
+
+    private static final String PENDING_APPROVAL = "На согласовании";
+    private static final String APPROVED = "Согласовано";
+    private static final String NOT_APPROVED = "Не согласовано";
 
     // ---------------------------- Respons ----------------------------
     private ApproveResponseDTO toResponse(Approve approve) {
@@ -206,6 +213,19 @@ public class ApproveService {
                 .collect(Collectors.toList());
         approveUserRepo.saveAll(approveUsers);
 
+        // Меняем статусы связанной заявки и задачи на "На согласовании"
+        OrderState pendingApproval = orderStateRepo.findByName(PENDING_APPROVAL)
+                .orElseThrow(() -> new ResourceNotFoundException("State"));
+
+        order.setOrderState(pendingApproval);
+        /* 
+            Сейчас меняем статус только у одной задачи. 
+            В перспективе проверять на что-нибудь, если будет много задач
+        */
+        OrderTask task = taskRepo.findByOrder_IdOrder(order.getIdOrder())
+                            .orElseThrow(() -> new ResourceNotFoundException("Task"));
+        task.setTaskState(pendingApproval);
+
         return toResponse(savedApprove);
     }
 
@@ -360,9 +380,9 @@ public class ApproveService {
 				.collect(Collectors.toList());
 
 		// Загружаем статусы по имени
-		OrderState approvedState = orderStateRepo.findByName("Согласовано")
+		OrderState approvedState = orderStateRepo.findByName(APPROVED)
 				.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Согласовано"));
-		OrderState notApprovedState = orderStateRepo.findByName("Не согласовано")
+		OrderState notApprovedState = orderStateRepo.findByName(NOT_APPROVED)
 				.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Не согласовано"));
 		OrderState rejectedState = orderStateRepo.findByName("Согласование отклонено")
 				.orElseThrow(() -> new ResourceNotFoundException("OrderState", "Согласование отклонено"));
@@ -373,7 +393,6 @@ public class ApproveService {
 				.anyMatch(u -> u.getApproveUserState().getIdOrderState().equals(notApprovedState.getIdOrderState()));
     	boolean anyRejected = activeUsers.stream()
 				.anyMatch(u -> u.getApproveUserState().getIdOrderState().equals(rejectedState.getIdOrderState()));
-		
 		if (allApproved) {
 			approve.setFlagApproved(true);
 			approve.setDateFact(Instant.now());

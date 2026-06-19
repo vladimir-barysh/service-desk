@@ -1,6 +1,7 @@
 package ru.altaiensb.service_desk.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -21,4 +22,6 @@ public interface OrderTaskRepository extends JpaRepository<OrderTask, Integer>{
    List<OrderTask> findByExecutor_IdItUser(Integer idItUser);
    
    List<OrderTask> findByOrderTaskParent_IdOrderTask(Integer parentId);
+
+   Optional<OrderTask> findByOrder_IdOrder(Integer orderId);
 }

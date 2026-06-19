@@ -69,9 +69,9 @@ public class ApproveUserService {
     @Transactional
 	public ApproveUserResponseDTO updateSelf(Integer approveId, Integer newState, String resultText) {
 		// TODO: взять согласованта из контекста
-		ApproveUser approveUser = approveUserRepo.findByApprove_IdApproveAndUser_IdItUser(approveId, 1)
+		ApproveUser approveUser = approveUserRepo.findByApprove_IdApproveAndUser_IdItUser(approveId, 2)
             .orElseThrow(() -> new ResourceNotFoundException(
-                String.format("ApproveUser not found for approveId=%d and userId=%d", approveId, 1)));
+                String.format("ApproveUser not found for approveId=%d and userId=%d", approveId, 2)));
 
 		OrderState approveUserState = orderStateRepo.findById(newState)
 			.orElseThrow(() -> new ResourceNotFoundException("OrderState", newState));
